@@ -5,6 +5,8 @@ package com.wang.test;
  */
 public class TestClass {
 
+    public static int TEST = 111;
+
     public static void main(String[] a) {
 
         final int INCREMENT = 1;
