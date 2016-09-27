@@ -1,0 +1,35 @@
+package com.wang.db;
+
+import org.apache.commons.dbcp.BasicDataSource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+/**
+ * http://blog.csdn.net/kalision/article/details/7645959
+ * DBCP 数据连接池的配置和使用
+ * <p/>
+ * http://blog.csdn.net/shenzhennba/article/details/20855149
+ * 连接池 DBCP 参数意义和设置
+ */
+public class Dbcp {
+
+    private static BasicDataSource basicDataSource;
+
+    public static Connection getConnection(String url, String driverClassName, String username,
+                                           String password) throws SQLException {
+        if (basicDataSource == null) {
+            basicDataSource = new BasicDataSource();
+            basicDataSource.setUrl(url);
+            basicDataSource.setDriverClassName(driverClassName);
+            basicDataSource.setUsername(username);
+            basicDataSource.setPassword(password);
+            basicDataSource.setInitialSize(10);
+            basicDataSource.setMinIdle(5);
+            basicDataSource.setMaxIdle(20);
+            basicDataSource.setMaxActive(20);
+        }
+        return basicDataSource.getConnection();
+    }
+
+}
