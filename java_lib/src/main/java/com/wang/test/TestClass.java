@@ -1,34 +1,42 @@
 package com.wang.test;
 
 /**
- * by ç‹è£ä¿Š on 2016/9/27.
+ * by ÍõÈÙ¿¡ on 2016/9/27.
  */
 public class TestClass {
-
-    public static int TEST = 111;
 
     public static void main(String[] a) {
 
         final int INCREMENT = 1;
         final int HOLE_NUMBER = 10;
+        final int SEARCH_NUMBER = 1000;
 
-        int[] holes = new int[HOLE_NUMBER];
+        int[] holesCount = new int[HOLE_NUMBER];
 
-        int result = 0;//æŠŠæ´ç©´11å¯¹åº”æˆ0
+        int position = 0;//°Ñ¶´Ñ¨11¶ÔÓ¦³É0
 
-        for (int i = 1; i <= 1000; i = i + INCREMENT) {
-            result = (result + i) % HOLE_NUMBER;
-            holes[result]++;
-            System.out.printf(result + " ");
+        System.out.println("ºüÀêÕÒÁË" + SEARCH_NUMBER + "´ÎµÄÇé¿ö£º");
+
+        for (int i = 0; i < SEARCH_NUMBER; i = i + INCREMENT) {
+
             if (i % 20 == 0) {
-                System.out.println();
+                System.out.println("\n\nµÚ" + (i + 1) + "-" + (i + 20) + "´Î£º");
             }
+
+            position = (position + i) % HOLE_NUMBER;
+            holesCount[position]++;
+            System.out.printf(position + " ");
+
         }
 
         System.out.println("\n\n");
 
         for (int i = 0; i < HOLE_NUMBER; i++) {
-            System.out.println(i + " - " + holes[i]);
+            String s = "µÚ" + i + "¸ö¶´Ñ¨µÄ·ÃÎÊ´ÎÊı£º" + holesCount[i];
+            if (holesCount[i] == 0) {
+                s += "£¨ÍÃ×Ó¿ÉÄÜÒş²ØµÄ¶´Ñ¨£©";
+            }
+            System.out.println(s);
         }
 
     }
