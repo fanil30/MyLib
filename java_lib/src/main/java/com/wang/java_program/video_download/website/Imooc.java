@@ -37,6 +37,9 @@ public class Imooc {
 
     private String courseUrl;
     private int videoQuality;
+    /**
+     * 获取方式：360浏览器登陆后 --> F12 --> Console --> document.cookie
+     */
     private String cookie;
 
     public Imooc(String courseUrl, int videoQuality, String cookie) {
@@ -47,14 +50,11 @@ public class Imooc {
 
     public Course getCourse() throws Exception {
         HttpUtil.HttpRequest request = new HttpUtil.HttpRequest();
-        String userAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14";
-        request.setCookie(cookie).addRequestProperty("User-Agent", userAgent);
-        HttpUtil.Result r = request.request(courseUrl);
+        HttpUtil.Result r = request.setCookie(cookie).setFirefoxUserAgent().request(courseUrl);
         if (r.state == HttpUtil.OK) {
             return parseHtml(r.result);
         } else {
-            GsonUtil.printFormatJson(r);
-            return null;
+            throw new Exception(GsonUtil.printFormatJson(r));
         }
     }
 

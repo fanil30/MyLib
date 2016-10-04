@@ -1,64 +1,48 @@
 package com.wang.java_program.video_download.website;
 
-/*
-import com.google.gson.Gson;
+
 import com.wang.java_program.video_download.bean.Course;
 import com.wang.java_program.video_download.bean.CourseDataFile;
 import com.wang.java_program.video_download.bean.Video;
-import com.wang.java_util.DebugUtil;
-import com.wang.java_util.FileUtil;
+import com.wang.java_util.GsonUtil;
 import com.wang.java_util.HttpUtil;
-import com.wang.java_util.JsonFormatUtil;
 import com.wang.java_util.TextUtil;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-*/
+
 public class JiKeXueYuan {
-/*
+
     public static final String url = "http://www.jikexueyuan.com";
 
     // 获取课程资料的url
     private static final String courseDataFileUrl = "http://www.jikexueyuan.com/course/downloadRes?course_id=";
 
-    private static String cookie;
+    private String courseUrl;
+    private String cookie;
 
-    @Override
-    public Result getCourse(String strUrl) {
+    public JiKeXueYuan(String courseUrl, String cookie) {
+        this.courseUrl = courseUrl;
+        this.cookie = cookie;
+    }
 
-        Result result = new Result();
-
-        String html;
-
-        HttpUtil.Result r = HttpUtil.request(strUrl, "GET", getCookie());
+    public Course getCourse() throws Exception {
+        HttpUtil.HttpRequest request = new HttpUtil.HttpRequest();
+        HttpUtil.Result r = request.setCookie(cookie).setFirefoxUserAgent().request(courseUrl);
         if (r.state == HttpUtil.OK) {
-            html = r.result;
+            return parseHtml(r.result);
         } else {
-            return null;
+            throw new Exception(GsonUtil.printFormatJson(r));
         }
+    }
 
-        if (html == null) {
-            result.status = IVideoWebSite.Result.ERROR;
-            result.msg = DebugUtil.addMsg("html获取失败", false);
-            return result;
-        }
-
+    private Course parseHtml(String html) throws Exception {
         // 获取课程名称
         String courseName = TextUtil.correctFileName(getCourseName(html), "_");
-
-        // 如果有保存course对象的缓存文件，则直接读取并返回
-        File cacheFile = new File(courseName + "/" + "cache.txt");
-        if (cacheFile.exists()) {
-            result.status = IVideoWebSite.Result.OK;
-            result.course = new Gson().fromJson(FileUtil.read(cacheFile.getAbsolutePath()), Course.class);
-            return result;
-
-        }
 
         // 获取该课程每一节视频的标题
         List<String> videoTitles = getVideoTitles(html);
@@ -72,62 +56,48 @@ public class JiKeXueYuan {
         // 先获取课程页面的视频（也就是第一个视频）的Url
         List<String> videoPageUrl = new ArrayList<>();
         List<String> videoRealUrl = new ArrayList<>();
-        videoPageUrl.add(strUrl);
+        videoPageUrl.add(courseUrl);
         videoRealUrl.add(getVideoUrl(html));
 
         // 获取第2，3，4...个视频的Url
         for (int i = 1; i < len; i++) {
-            String nextUrl = strUrl.replace(".html", "_" + (i + 1) + ".html");
+            String nextUrl = courseUrl.replace(".html", "_" + (i + 1) + ".html");
             videoPageUrl.add(nextUrl);
-            r = HttpUtil.request(nextUrl, getCookie(), "GET");
-
+            HttpUtil.Result r = HttpUtil.request(nextUrl, cookie, "GET");
             if (r.state == HttpUtil.OK) {
                 videoRealUrl.add(getVideoUrl(r.result));
-
             } else {
-                result.status = IVideoWebSite.Result.ERROR;
-                result.msg = DebugUtil.addMsg("nextUrl的html获取失败", false);
-                return result;
+                throw new Exception("nextUrl的html获取失败。nextUrl : " + nextUrl);
             }
         }
 
         // 获取课程资料文件的名字和url
-        String courseId = "";
+        String courseId;
         CourseDataFile courseDataFile = null;
-        int i = strUrl.indexOf("course/") + 7;
-        int j = strUrl.indexOf(".html");
+        int i = courseUrl.indexOf("course/") + 7;
+        int j = courseUrl.indexOf(".html");
         if (i != -1 && j != -1) {
-            courseId = strUrl.substring(i, j);
+            courseId = courseUrl.substring(i, j);
             courseDataFile = getCourseDataFile(courseId);
         }
 
         // 最后把所有信息汇总到course对象
         Course course = new Course();
-        course.courseName = courseName;
-        course.videos = new ArrayList<Video>();
+        course.setCourseName(courseName);
+        List<CourseDataFile> courseDataFiles = new ArrayList<>();
+        courseDataFiles.add(courseDataFile);
+        course.setCourseDataFiles(courseDataFiles);
+        List<Video> videos = new ArrayList<>();
         for (i = 0; i < len; i++) {
             Video video = new Video();
-            video.title = videoTitles.get(i) + ".mp4";
-            video.pageUrl = videoPageUrl.get(i);
-            video.realUrl = videoRealUrl.get(i);
-            course.videos.add(video);
+            video.setTitle(videoTitles.get(i) + ".mp4");
+            video.setPageUrl(videoPageUrl.get(i));
+            video.setRealUrl(videoRealUrl.get(i));
+            videos.add(video);
         }
-        course.courseDataFiles = new ArrayList<CourseDataFile>();
-        course.courseDataFiles.add(courseDataFile);
+        course.setVideos(videos);
 
-        // 获取课程信息后保存course对象到缓存文件中，以备下次使用
-        try {
-            new File(TextUtil.correctFileName(courseName)).mkdirs();
-//            FileUtil.writeObject(course, cacheFile.getAbsolutePath());
-            String json = JsonFormatUtil.formatJson(new Gson().toJson(course));
-            FileUtil.write(json, cacheFile.getAbsolutePath());
-        } catch (Exception e) {
-            DebugUtil.SystemOutPrintln("保存缓存文件失败: " + e.toString());
-        }
-
-        result.status = IVideoWebSite.Result.OK;
-        result.course = course;
-        return result;
+        return course;
     }
 
     // 获取课程名称
@@ -139,7 +109,7 @@ public class JiKeXueYuan {
 
     // 获取该课程每一节视频的标题
     private List<String> getVideoTitles(String html) {
-        List<String> videoTitles = new ArrayList<String>();
+        List<String> videoTitles = new ArrayList<>();
 
         Document doc = Jsoup.parse(html);
         Elements list = doc.getElementsByClass("lessonvideo-list");
@@ -163,10 +133,8 @@ public class JiKeXueYuan {
 
     private CourseDataFile getCourseDataFile(String courseId) {
 
-        CourseDataFile courseDataFile = new CourseDataFile();
-
-        HttpUtil.Result r = HttpUtil.request(courseDataFileUrl + courseId,
-                getCookie(), "GET", null);
+        HttpUtil.HttpRequest request = new HttpUtil.HttpRequest();
+        HttpUtil.Result r = request.setCookie(cookie).request(courseDataFileUrl + courseId);
         String json = r.result;
         String name;
         String url;
@@ -196,22 +164,7 @@ public class JiKeXueYuan {
             return null;
         }
 
-        courseDataFile.name = TextUtil.correctFileName(name);
-        courseDataFile.url = url;
-
-        return courseDataFile;
+        return new CourseDataFile(TextUtil.correctFileName(name, "_"), url);
     }
 
-    @Override
-    public String getCookie() {
-        try {
-            if (TextUtil.isEmpty(cookie)) {
-                cookie = FileUtil.read("jikexueyuan");
-            }
-            return cookie;
-        } catch (Exception e) {
-            return "";
-        }
-    }
-*/
 }

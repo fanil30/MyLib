@@ -37,6 +37,20 @@ public class PrefUtil {
         return entity;
     }
 
+    /**
+     * 用于判断是否第一次使用
+     *
+     * @return 第一次调用返回true，之后调用返回false
+     */
+    public static boolean isFirst(Context context, String prefName) {
+        SharedPreferences pref = context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        boolean first = pref.getBoolean("first", true);
+        if (first) {
+            pref.edit().putBoolean("first", false).apply();
+        }
+        return first;
+    }
+
     public static void clear(Context context, String prefName) {
         SharedPreferences pref = context.getSharedPreferences(prefName,
                 Context.MODE_PRIVATE);

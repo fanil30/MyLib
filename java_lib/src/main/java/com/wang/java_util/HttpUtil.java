@@ -127,7 +127,7 @@ public class HttpUtil {
             }
         }.start();
     }
-    
+
     public static class HttpRequest {
 
         private String cookie;
@@ -148,6 +148,18 @@ public class HttpUtil {
 
         public HttpRequest setCookie(String cookie) {
             this.cookie = cookie;
+            return this;
+        }
+
+        public HttpRequest setUserAgent(String userAgent) {
+            properties.add(new RequestProperty("User-Agent", userAgent));
+            return this;
+        }
+
+        public HttpRequest setFirefoxUserAgent() {
+            String userAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.8.1.14) " +
+                    "Gecko/20080404 Firefox/2.0.0.14";
+            properties.add(new RequestProperty("User-Agent", userAgent));
             return this;
         }
 
