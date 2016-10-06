@@ -10,6 +10,9 @@ import com.wang.java_util.GsonUtil;
  */
 public class PrefUtil {
 
+    /**
+     * @param entity 不能为空
+     */
     public static void setEntity(Context context, String prefName, Object entity) {
         SharedPreferences pref = context.getSharedPreferences(prefName,
                 Context.MODE_PRIVATE);

@@ -8,7 +8,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.widget.EditText;
 
 /**
- *  by Administrator on 2016/3/13.
+ * by Administrator on 2016/3/13.
  */
 public class DialogUtil {
 
@@ -27,8 +27,10 @@ public class DialogUtil {
 //        builder.setIcon(icon);
         if (positiveListener != null) {
             builder.setPositiveButton("确认", positiveListener);
+            builder.setNegativeButton("取消", null);
+        } else {
+            builder.setPositiveButton("确认", null);
         }
-        builder.setNegativeButton("取消", null);
 //        builder.setNeutralButton("忽略", dialogOnclicListener);
         builder.create().show();
     }

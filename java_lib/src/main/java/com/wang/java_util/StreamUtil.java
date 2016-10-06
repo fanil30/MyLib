@@ -6,9 +6,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- *  by 王荣俊 on 2016/5/20.
+ * by 王荣俊 on 2016/5/20.
  */
 public class StreamUtil {
+
+    public static String readInputStream(InputStream is) throws IOException {
+        return readInputStream(is, null);
+    }
 
     public static String readInputStream(InputStream is, String charsetName) throws IOException {
         if (is == null) {
