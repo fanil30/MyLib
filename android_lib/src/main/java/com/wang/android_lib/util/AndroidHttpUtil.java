@@ -42,7 +42,9 @@ public class AndroidHttpUtil {
                                     final OnFailedListener failedListener) {
 
         if (!isNetworkConnected(context)) {
-            M.t(context, "网络不可用");
+            if (showToastHint) {
+                M.t(context, "网络不可用");
+            }
             return;
         }
 

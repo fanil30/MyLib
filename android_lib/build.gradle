@@ -23,7 +23,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.4.0'
 
-    compile project(':java_lib')//更新MyLib需要
-//    compile project(path: ':MyLib:java_lib')//更新引用MyLib的其他工程需要
+//    compile project(':java_lib')//更新MyLib需要
+    compile project(path: ':MyLib:java_lib')//更新引用MyLib的其他工程需要
 
 }

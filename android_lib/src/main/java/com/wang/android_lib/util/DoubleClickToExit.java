@@ -8,6 +8,10 @@ public class DoubleClickToExit {
 
     private static long exitTime = 0;
 
+    /**
+     * @return true-按了返回键。false-需要自行处理（自己返回super.onKeyDown）
+     * 如：return DoubleClickToExit.onKeyDown(keyCode, event, this) || super.onKeyDown(keyCode, event);
+     */
     public static boolean onKeyDown(int keyCode, KeyEvent event, Activity activity) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (System.currentTimeMillis() - exitTime >= 2000) {
@@ -16,9 +20,9 @@ public class DoubleClickToExit {
             } else {
                 activity.finish();
             }
+            return true;
         }
-
-        return true;
+        return false;
     }
 
 }

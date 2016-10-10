@@ -25,9 +25,6 @@ public class AndroidHttpHelper {
     public void request(String url) {
         AndroidHttpUtil.startRequest(context, dialogHint, showToastHint, url, requestMethod,
                 cookie, output, succeedListener, failedListener);
-        requestMethod = "GET";
-        dialogHint = "提示";
-        showToastHint = true;
     }
 
     public AndroidHttpHelper setDialogHint(String dialogHint) {

@@ -4,6 +4,7 @@ import com.wang.java_util.JsonFormatUtil;
 import com.wang.java_util.StreamUtil;
 import com.wang.java_util.TextUtil;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +53,7 @@ public abstract class CustomHttpServlet extends HttpServlet {
         this.charset = charset;
     }
 
-    protected void onCreate() {
+    protected void onCreate(HttpServletRequest request, HttpServletResponse response) {
     }
 
     protected String[] onGetParameterStart() {
@@ -81,16 +82,17 @@ public abstract class CustomHttpServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        onCreate();
+
+        onCreate(request, response);
 
         request.setCharacterEncoding(charset);
         response.setCharacterEncoding(charset);
 
+
         try {
 
-//            0.获取cookie
+//            0.获取cookie和requestUrl
             cookie = request.getHeader("Set-Cookie");
-
 
 //            1.根据参数名获取参数值并把参数名-参数值以键值对的形式返回到onGetParamaterFinish的参数
             String parameters[] = onGetParameterStart();
@@ -179,8 +181,18 @@ public abstract class CustomHttpServlet extends HttpServlet {
         this.cookie = cookie;
     }
 
-    public String getCookie() {
+    protected String getCookie() {
         return cookie;
+    }
+
+    protected String getWebAppDir() {
+        return getServletContext().getRealPath("") + File.separator;
+    }
+
+    protected String getWebAppName() {
+        String appDir = getWebAppDir();
+        String[] split = appDir.split("webapps");
+        return TextUtil.correctFileName(split[1], "");
     }
 
 }

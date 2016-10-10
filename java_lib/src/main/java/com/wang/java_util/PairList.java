@@ -24,6 +24,7 @@ public class PairList<T1, T2> {
 
     public void add(T1 t1, T2 t2) {
         entityList.add(new Entity(t1, t2));
+        System.out.println(t1 + " : " + t2);
     }
 
     public int size() {
@@ -34,7 +35,7 @@ public class PairList<T1, T2> {
         entityList.remove(index);
     }
 
-    class Entity {
+    private class Entity {
         private T1 t1;
         private T2 t2;
 

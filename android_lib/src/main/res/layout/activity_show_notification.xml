@@ -2,7 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="#272822"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    android:paddingTop="5dp">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -11,7 +16,9 @@
         <TextView
             android:id="@+id/tv_show"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="#e6db74"
+            android:textSize="14sp" />
 
     </ScrollView>
 
