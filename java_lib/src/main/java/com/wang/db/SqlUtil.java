@@ -3,6 +3,7 @@ package com.wang.db;
 import com.wang.java_util.TextUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 生成各种sql语句的工具类。使用之前需要先配置SqlUtil.dbType，默认为SqlUtil.TYPE_MYSQL
@@ -35,7 +36,7 @@ public class SqlUtil {
         return "create database if not exists " + name + " character set " + charset + ";";
     }
 
-    public static String createTableSql(String tableName, ArrayList<com.wang.db.TableField> tableFields) {
+    public static String createTableSql(String tableName, List<TableField> tableFields) {
         StringBuilder sql = new StringBuilder();
         sql.append("create table if not exists ").append(tableName).append("(");
         for (int i = 0; i < tableFields.size(); i++) {
@@ -63,7 +64,7 @@ public class SqlUtil {
 
     }
 
-    public static String insertSql(String tableName, ArrayList<TableValue> tableValues) {
+    public static String insertSql(String tableName, List<TableValue> tableValues) {
         StringBuilder sql = new StringBuilder();
         sql.append("insert ").append(tableName);
         String nameList = "(";

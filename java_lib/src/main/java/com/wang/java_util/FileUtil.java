@@ -174,6 +174,15 @@ public class FileUtil {
     }
 
     public static void write(String content, String path, String charset) throws Exception {
+
+        if (TextUtil.isEmpty(path)) {
+            throw new Exception("filePath is null");
+        }
+
+        if (content == null) {
+            content = "";
+        }
+
         File file = new File(path);
         if (!file.exists()) {
             file.createNewFile();

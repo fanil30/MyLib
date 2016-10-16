@@ -24,7 +24,6 @@ public class PairList<T1, T2> {
 
     public void add(T1 t1, T2 t2) {
         entityList.add(new Entity(t1, t2));
-        System.out.println(t1 + " : " + t2);
     }
 
     public int size() {
