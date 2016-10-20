@@ -41,6 +41,10 @@ public class NotificationUtil {
 
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, notificationId);
 
+        if (content == null) {
+            content = "";
+        }
+
         if (content.length() > 100) {
             content = content.substring(0, 100);//防止内容过多造成通知栏卡顿
         }

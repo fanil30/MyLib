@@ -30,6 +30,8 @@ public class CrashUtil {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
 
+                ex.printStackTrace();
+
                 String error = getError(ex);
                 String packageInfo = getPackageInfo(context);
                 String mobileInfo = getMobileInfo();

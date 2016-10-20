@@ -1,5 +1,6 @@
 package com.wang.test;
 
+import com.wang.java_util.GsonUtil;
 import com.wang.java_util.MathUtil;
 
 import java.util.ArrayList;
@@ -9,20 +10,24 @@ public class JavaLibTestClass {
 
     public static void main(String[] args) throws Exception {
 
-        List<User> users = getExample(18000);
+        List<User> users = getExample(10);
         List<User> users1 = SortHelper.copy(users);
         List<User> users2 = SortHelper.copy(users);
         List<User> users3 = SortHelper.copy(users);
         List<User> users4 = SortHelper.copy(users);
         List<User> users5 = SortHelper.copy(users);
+        List<User> users6 = SortHelper.copy(users);
 
         SortHelper.ISort<User> iSort = new SortHelper.ISort<User>() {
             @Override
             public SortHelper.Compare compare(User entity1, User entity2) {
-                if (entity1.getAge() <= entity2.getAge()) {
+                if (entity1.getAge() < entity2.getAge()) {
+                    return SortHelper.Compare.SMALLER;
+                } else if (entity1.getAge() == entity2.getAge()) {
+                    return SortHelper.Compare.EQUAL;
+                } else {
                     return SortHelper.Compare.BIGGER;
                 }
-                return SortHelper.Compare.SMALLER;
             }
         };
 
@@ -42,7 +47,7 @@ public class JavaLibTestClass {
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("选择排序的用时：" + time + " 秒");
         System.out.println("选择排序的基本操作次数：" + sortSelect + "\n");
-*/
+*//*
         System.out.println("开始合并排序");
         currentTimeMillis = System.currentTimeMillis();
         SortHelper.sortMerge(users3, iSort);
@@ -64,9 +69,15 @@ public class JavaLibTestClass {
         System.out.println("堆排序的用时：" + time + " 秒");
         System.out.println("堆排序的基本操作次数：" + sortHeap + "\n");
 
-//        GsonUtil.printFormatJson(users3);
-//        System.out.println("----------------------------------");
-//        GsonUtil.printFormatJson(users4);
+        System.out.println("开始快速排序");
+        currentTimeMillis = System.currentTimeMillis();
+        int sortQuick = SortHelper.sortQuick(users6, iSort);
+        time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
+        System.out.println("快速排序的用时：" + time + " 秒");
+        System.out.println("快速排序的基本操作次数：" + sortHeap + "\n");
+*/
+        SortHelper.sortQuick(users, iSort);
+        GsonUtil.printFormatJson(users);
 
     }
 

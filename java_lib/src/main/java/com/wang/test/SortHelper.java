@@ -151,4 +151,40 @@ public class SortHelper {
         return Heap.basicOperationCount;
     }
 
+    private static <T> int hoarePartition(List<T> entityList, ISort<T> iSort, int left, int right) {
+
+        int middle = left;
+        while (true) {
+            while (iSort.compare(entityList.get(left), entityList.get(middle)) != Compare.BIGGER) {//left<=middle
+                left++;
+            }
+            while (iSort.compare(entityList.get(right), entityList.get(middle)) != Compare.BIGGER) {//right<=middle
+                right--;
+            }
+            if (left < right) {
+                swap(entityList, left, right);
+            } else {
+                swap(entityList, middle, right);
+                return right;
+            }
+        }
+    }
+
+    private static <T> int sortQuick(List<T> entityList, ISort<T> iSort, int left, int right) {
+        if (left < right) {
+            int middle = hoarePartition(entityList, iSort, left, right);
+            sortQuick(entityList, iSort, left, middle - 1);
+            sortQuick(entityList, iSort, middle, right);
+        }
+        return 0;
+    }
+
+    /**
+     * 快速排序
+     */
+    public static <T> int sortQuick(List<T> entityList, ISort<T> iSort) {
+        sortQuick(entityList, iSort, 0, entityList.size() - 1);
+        return 0;
+    }
+
 }
