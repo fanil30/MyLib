@@ -2,36 +2,42 @@ package com.wang.test;
 
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.MathUtil;
-import com.wang.math.IOperation;
-import com.wang.math.Matrix;
-import com.wang.math.MatrixUtil;
+import com.wang.maths.IOperation;
+import com.wang.maths.matrix.Matrix;
+import com.wang.maths.matrix.MatrixException;
+import com.wang.maths.matrix.MatrixUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class JavaLibTestClass {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws MatrixException {
 
-        Matrix<Integer> matrix1 = new Matrix<>(3, 3, Arrays.asList(
-                1, 2, 3,
-                4, 5, 6,
-                7, 8, 9
-        ));
-        Matrix<Integer> matrix2 = new Matrix<>(3, 2, Arrays.asList(
-                1, 2,
-                4, 5,
-                7, 8
-        ));
+        Matrix<Double> matrix1 = new Matrix<>(MatrixUtil.toDoubleList(new int[]{
+                2, -1, 1,
+                4, 1, -1,
+                1, 1, 1,
+        }), 3, 3, IOperation.doubleIOperation);
+
+        Matrix<Double> matrix2 = new Matrix<>(MatrixUtil.toDoubleList(new int[]{
+                1, 1, 2,
+                -1, 2, 0,
+                1, 1, 3,
+        }), 3, 3, IOperation.doubleIOperation);
 
         matrix1.show();
         System.out.println("\n\n----------------------------\n\n");
+
         matrix2.show();
         System.out.println("\n\n----------------------------\n\n");
 
-        MatrixUtil.cheng(matrix1, matrix2, IOperation.integerIOperation).show();
+        MatrixUtil.cheng(matrix1, matrix2).show();
+        System.out.println("\n\n----------------------------\n\n");
 
+        Matrix<Double> reverse = MatrixUtil.reverse(matrix2);
+        reverse.show();
+        System.out.println("\n\n----------------------------\n\n");
     }
 
     public static void sortTest(String[] args) throws Exception {

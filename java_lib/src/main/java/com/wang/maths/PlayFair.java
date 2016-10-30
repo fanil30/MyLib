@@ -1,13 +1,14 @@
-package com.wang.math;
+package com.wang.maths;
 
 import com.wang.java_util.TextUtil;
+import com.wang.maths.matrix.Matrix;
 
 /**
  * by 王荣俊 on 2016/10/27.
  */
 public class PlayFair {
 
-    private Matrix<String> matrix = new Matrix<>(5, 5);
+    private Matrix<String> matrix = new Matrix<>(5, 5, null);
 
     public PlayFair(String key) {
         createMatrix(key);
