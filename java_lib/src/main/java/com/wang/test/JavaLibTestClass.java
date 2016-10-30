@@ -2,13 +2,39 @@ package com.wang.test;
 
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.MathUtil;
+import com.wang.math.IOperation;
+import com.wang.math.Matrix;
+import com.wang.math.MatrixUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class JavaLibTestClass {
 
     public static void main(String[] args) throws Exception {
+
+        Matrix<Integer> matrix1 = new Matrix<>(3, 3, Arrays.asList(
+                1, 2, 3,
+                4, 5, 6,
+                7, 8, 9
+        ));
+        Matrix<Integer> matrix2 = new Matrix<>(3, 2, Arrays.asList(
+                1, 2,
+                4, 5,
+                7, 8
+        ));
+
+        matrix1.show();
+        System.out.println("\n\n----------------------------\n\n");
+        matrix2.show();
+        System.out.println("\n\n----------------------------\n\n");
+
+        MatrixUtil.cheng(matrix1, matrix2, IOperation.integerIOperation).show();
+
+    }
+
+    public static void sortTest(String[] args) throws Exception {
 
         List<User> users = getExample(10);
         List<User> users1 = SortHelper.copy(users);
