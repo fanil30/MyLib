@@ -3,6 +3,10 @@ package com.wang.android_lib.helper;
 import android.content.Context;
 
 import com.wang.android_lib.util.AndroidHttpUtil;
+import com.wang.java_util.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * by 王荣俊 on 2016/8/18.
@@ -13,18 +17,20 @@ public class AndroidHttpHelper {
     private String dialogHint;
     private boolean showToastHint = true;
     private String requestMethod = "GET";
-    private String cookie;
+    private List<Pair<String, String>> requestPropertyList;
     private String output;
     private AndroidHttpUtil.OnSucceedListener succeedListener;
     private AndroidHttpUtil.OnFailedListener failedListener;
 
+
     public AndroidHttpHelper(Context context) {
         this.context = context;
+        requestPropertyList = new ArrayList<>();
     }
 
     public void request(String url) {
         AndroidHttpUtil.startRequest(context, dialogHint, showToastHint, url, requestMethod,
-                cookie, output, succeedListener, failedListener);
+                requestPropertyList, output, succeedListener, failedListener);
     }
 
     public AndroidHttpHelper setDialogHint(String dialogHint) {
@@ -43,7 +49,12 @@ public class AndroidHttpHelper {
     }
 
     public AndroidHttpHelper setCookie(String cookie) {
-        this.cookie = cookie;
+        requestPropertyList.add(new Pair<>("Set-Cookie", cookie));
+        return this;
+    }
+
+    public AndroidHttpHelper addRequestProperty(String key, String value) {
+        requestPropertyList.add(new Pair<>(key, value));
         return this;
     }
 

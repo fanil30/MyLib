@@ -9,6 +9,8 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class HttpUtil {
 
@@ -24,10 +26,6 @@ public class HttpUtil {
 
     public static Result request(String url) {
         return new HttpRequest().request(url);
-    }
-
-    public static Result request(String url, String output, String requestMethod) {
-        return new HttpRequest().setOutput(output).setRequestMethod(requestMethod).request(url);
     }
 
     /**
@@ -130,11 +128,16 @@ public class HttpUtil {
 
     public static class HttpRequest {
 
-        private String cookie;
+        private String requestMethod = "GET";
         private String output;
         private String charsetName = "utf-8";
-        private String requestMethod = "GET";
-        private ArrayList<RequestProperty> properties = new ArrayList<>();
+        private int connectTimeOut = CONNECT_TIMEOUT;
+        private int readTimeOut = READ_TIMEOUT;
+        private List<Pair<String, String>> requestPropertyList;
+
+        public HttpRequest() {
+            requestPropertyList = new ArrayList<>();
+        }
 
         public HttpRequest setRequestMethod(String requestMethod) {
             this.requestMethod = requestMethod;
@@ -147,19 +150,19 @@ public class HttpUtil {
         }
 
         public HttpRequest setCookie(String cookie) {
-            this.cookie = cookie;
+            requestPropertyList.add(new Pair<>("Set-Cookie", cookie));
             return this;
         }
 
         public HttpRequest setUserAgent(String userAgent) {
-            properties.add(new RequestProperty("User-Agent", userAgent));
+            requestPropertyList.add(new Pair<>("User-Agent", userAgent));
             return this;
         }
 
         public HttpRequest setFirefoxUserAgent() {
             String userAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.8.1.14) " +
                     "Gecko/20080404 Firefox/2.0.0.14";
-            properties.add(new RequestProperty("User-Agent", userAgent));
+            requestPropertyList.add(new Pair<>("User-Agent", userAgent));
             return this;
         }
 
@@ -169,17 +172,17 @@ public class HttpUtil {
         }
 
         public HttpRequest addRequestProperty(String key, String value) {
-            properties.add(new RequestProperty(key, value));
+            requestPropertyList.add(new Pair<>(key, value));
             return this;
         }
 
         public HttpRequest setConnectTimeOut(int time) {
-            CONNECT_TIMEOUT = time;
+            connectTimeOut = time;
             return this;
         }
 
         public HttpRequest setReadTimeOut(int time) {
-            READ_TIMEOUT = time;
+            readTimeOut = time;
             return this;
         }
 
@@ -194,13 +197,8 @@ public class HttpUtil {
                 conn.setConnectTimeout(CONNECT_TIMEOUT);
                 conn.setReadTimeout(READ_TIMEOUT);
 
-                if (cookie != null && cookie.length() > 0) {
-                    conn.setRequestProperty("Set-Cookie", cookie);
-                }
-
-                for (RequestProperty property : properties) {
-                    conn.setRequestProperty(property.key, property.value);
-                    System.out.println(property.key + " : " + property.value);
+                for (Pair<String, String> requestProperty : requestPropertyList) {
+                    conn.setRequestProperty(requestProperty.first, requestProperty.second);
                 }
 
                 if (output != null && output.length() > 0) {
@@ -209,19 +207,10 @@ public class HttpUtil {
                     os.flush();
                     os.close();
                 }
-/*
-                Map map = conn.getHeaderFields();
-                if (map != null) {
-                    Object obj = map.get("Set-Cookie");
-                    if (obj != null) {
-                        String cookie = obj.toString();
-                        if (!TextUtil.isEmpty(cookie)) {
-                            r.cookie = cookie;
-                        }
-                    }
-                }
-*/
-                r.cookie = conn.getHeaderField("Set-Cookie");
+
+                r.headerFields = conn.getHeaderFields();
+                r.setCookie = conn.getHeaderField("Set-Cookie");
+                r.cookie = conn.getHeaderField("Cookie");
                 r.size = TextUtil.transferFileLength(conn.getContentLength(), 2);
                 r.responseCode = conn.getResponseCode();
 
@@ -236,10 +225,6 @@ public class HttpUtil {
                 r.state = TIME_OUT;
                 r.result = e.toString();
 
-            } catch (FileNotFoundException e) {
-                r.state = UNKNOWN_ERROR;
-                r.result = e.toString();
-
             } catch (Exception e) {
                 r.state = UNKNOWN_ERROR;
                 r.result = e.toString();
@@ -248,25 +233,16 @@ public class HttpUtil {
             return r;
         }
 
-        class RequestProperty {
-            private String key;
-            private String value;
-
-            public RequestProperty(String key, String value) {
-                this.key = key;
-                this.value = value;
-            }
-
-        }
-
     }
 
     public static class Result {
         public int state;
         public int responseCode;
-        public String size;
         public String cookie;
+        public String setCookie;
         public String result;
+        public String size;
+        Map<String, List<String>> headerFields;
     }
 
 }

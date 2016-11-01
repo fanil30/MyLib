@@ -13,7 +13,7 @@ public class PairList<T1, T2> {
     public PairList() {
         entityList = new ArrayList<>();
     }
-
+    
     public T1 getLeft(int index) {
         return entityList.get(index).getT1();
     }

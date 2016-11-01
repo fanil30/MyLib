@@ -63,7 +63,7 @@ public class JiKeXueYuan {
         for (int i = 1; i < len; i++) {
             String nextUrl = courseUrl.replace(".html", "_" + (i + 1) + ".html");
             videoPageUrl.add(nextUrl);
-            HttpUtil.Result r = HttpUtil.request(nextUrl, cookie, "GET");
+            HttpUtil.Result r = new HttpUtil.HttpRequest().setCookie(cookie).request(nextUrl);
             if (r.state == HttpUtil.OK) {
                 videoRealUrl.add(getVideoUrl(r.result));
             } else {

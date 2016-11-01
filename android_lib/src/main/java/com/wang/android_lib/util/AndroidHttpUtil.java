@@ -9,9 +9,11 @@ import com.wang.java_util.DebugUtil;
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.HttpUtil;
 import com.wang.java_util.JsonFormatUtil;
+import com.wang.java_util.Pair;
 import com.wang.java_util.TextUtil;
 
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * by 王荣俊 on 2016/5/19.
@@ -37,7 +39,8 @@ public class AndroidHttpUtil {
     public static void startRequest(final Context context, final String dialogHint,
                                     final boolean showToastHint,
                                     final String url, final String requestMethod,
-                                    final String cookie, final String output,
+                                    final List<Pair<String, String>> requestPropertyList,
+                                    final String output,
                                     final OnSucceedListener succeedListener,
                                     final OnFailedListener failedListener) {
 
@@ -48,7 +51,9 @@ public class AndroidHttpUtil {
             return;
         }
 
-        String content = "url: \n" + url + "\n\n\ncookie: \n" + cookie + "\n\n\noutput: \n" + output;
+        String content = "url: \n" + url +
+                "\n\n\noutput: \n" + output +
+                "\n\n\nrequestProperty: \n" + GsonUtil.formatJson(requestPropertyList);
         NotificationUtil.showNotification(context, 1, NotificationUtil.ICON_WARNING,
                 "Log-Request", content, false);
 
@@ -65,12 +70,12 @@ public class AndroidHttpUtil {
             @Override
             protected HttpUtil.Result doInBackground(Void... params) {
 
-                return new HttpUtil.HttpRequest()
-                        .setRequestMethod(requestMethod)
-                        .setOutput(output)
-                        .setCharsetName("utf-8")
-                        .setCookie(cookie)
-                        .request(url);
+                HttpUtil.HttpRequest request = new HttpUtil.HttpRequest();
+                request.setRequestMethod(requestMethod).setOutput(output).setCharsetName("utf-8");
+                for (Pair<String, String> requestProperty : requestPropertyList) {
+                    request.addRequestProperty(requestProperty.first, requestProperty.second);
+                }
+                return request.request(url);
             }
 
             @Override
