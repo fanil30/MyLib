@@ -15,6 +15,8 @@ import com.wang.android_lib.util.AnimationUtil;
  */
 public class LoadingAdapter extends BaseAdapter {
 
+    public static final int LOADING_ADAPTER_ID = -2674564;
+
     private Context context;
 
     public LoadingAdapter(Context context) {
@@ -33,7 +35,7 @@ public class LoadingAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return LOADING_ADAPTER_ID;
     }
 
     @Override

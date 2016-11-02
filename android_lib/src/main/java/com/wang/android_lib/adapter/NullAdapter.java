@@ -14,7 +14,7 @@ import com.wang.android_lib.R;
  */
 public class NullAdapter extends BaseAdapter {
 
-    public static final int NULL_ADAPTER_ID = -1;
+    public static final int NULL_ADAPTER_ID = -452342;
 
     private Context context;
     private String message;

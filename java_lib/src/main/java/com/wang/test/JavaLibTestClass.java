@@ -2,6 +2,7 @@ package com.wang.test;
 
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.MathUtil;
+import com.wang.maths.Hill;
 import com.wang.maths.IOperation;
 import com.wang.maths.matrix.Matrix;
 import com.wang.maths.matrix.MatrixException;
@@ -12,7 +13,27 @@ import java.util.List;
 
 public class JavaLibTestClass {
 
-    public static void main(String[] args) throws MatrixException {
+    public static void main(String[] args) throws Exception {
+        Matrix<Double> keyMatrix = new Matrix<>(MatrixUtil.toDoubleList(new int[]{
+                17, 17, 5,
+                21, 18, 21,
+                2, 2, 19,
+        }), 3, 3, IOperation.doubleIOperation);
+
+        MatrixUtil.reverse(keyMatrix).show();
+        keyMatrix.show();
+
+        Hill hill = new Hill(keyMatrix);
+        String text = "pay more money";
+        String encode = hill.encode(text);
+        String decode = hill.decode(encode);
+
+        System.out.println("text: " + text);
+        System.out.println("encode: " + encode);
+        System.out.println("decode: " + decode);
+    }
+
+    public static void matrixTest(String[] args) throws MatrixException {
 
         Matrix<Double> matrix1 = new Matrix<>(MatrixUtil.toDoubleList(new int[]{
                 2, -1, 1,
@@ -38,6 +59,8 @@ public class JavaLibTestClass {
         Matrix<Double> reverse = MatrixUtil.reverse(matrix2);
         reverse.show();
         System.out.println("\n\n----------------------------\n\n");
+
+
     }
 
     public static void sortTest(String[] args) throws Exception {
@@ -66,47 +89,47 @@ public class JavaLibTestClass {
         long currentTimeMillis;
         double time;
 /*
-        System.out.println("¿ªÊ¼Ã°ÅÝÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         int sortBubble = SortHelper.sortBubble(users1, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("Ã°ÅÝÓÃÊ±£º" + time + " Ãë");
-        System.out.println("Ã°ÅÝµÄ»ù±¾²Ù×÷´ÎÊý£º" + sortBubble + "\n");
+        System.out.println("Ã°ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("Ã°ï¿½ÝµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + sortBubble + "\n");
 
-        System.out.println("¿ªÊ¼Ñ¡ÔñÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         int sortSelect = SortHelper.sortSelect(users2, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("Ñ¡ÔñÅÅÐòµÄÓÃÊ±£º" + time + " Ãë");
-        System.out.println("Ñ¡ÔñÅÅÐòµÄ»ù±¾²Ù×÷´ÎÊý£º" + sortSelect + "\n");
+        System.out.println("Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + sortSelect + "\n");
 *//*
-        System.out.println("¿ªÊ¼ºÏ²¢ÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         SortHelper.sortMerge(users3, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("ºÏ²¢ÅÅÐòµÄÓÃÊ±£º" + time + " Ãë");
-        System.out.println("ºÏ²¢ÅÅÐòµÄ»ù±¾²Ù×÷´ÎÊý£º" + SortHelper.basicOperationCount + "\n");
+        System.out.println("ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("ï¿½Ï²ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + SortHelper.basicOperationCount + "\n");
 
-        System.out.println("¿ªÊ¼²åÈëÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         int sortInsertion = SortHelper.sortInsertion(users4, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("²åÈëÅÅÐòµÄÓÃÊ±£º" + time + " Ãë");
-        System.out.println("²åÈëÅÅÐòµÄ»ù±¾²Ù×÷´ÎÊý£º" + sortInsertion + "\n");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + sortInsertion + "\n");
 
-        System.out.println("¿ªÊ¼¶ÑÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         int sortHeap = SortHelper.sortHeap(users5, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("¶ÑÅÅÐòµÄÓÃÊ±£º" + time + " Ãë");
-        System.out.println("¶ÑÅÅÐòµÄ»ù±¾²Ù×÷´ÎÊý£º" + sortHeap + "\n");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + sortHeap + "\n");
 
-        System.out.println("¿ªÊ¼¿ìËÙÅÅÐò");
+        System.out.println("ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
         currentTimeMillis = System.currentTimeMillis();
         int sortQuick = SortHelper.sortQuick(users6, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
-        System.out.println("¿ìËÙÅÅÐòµÄÓÃÊ±£º" + time + " Ãë");
-        System.out.println("¿ìËÙÅÅÐòµÄ»ù±¾²Ù×÷´ÎÊý£º" + sortHeap + "\n");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½" + time + " ï¿½ï¿½");
+        System.out.println("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" + sortHeap + "\n");
 */
         SortHelper.sortQuick(users, iSort);
         GsonUtil.printFormatJson(users);

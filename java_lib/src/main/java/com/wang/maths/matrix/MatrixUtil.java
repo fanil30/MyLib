@@ -10,6 +10,14 @@ import java.util.List;
  */
 public class MatrixUtil {
 
+    public static List<Integer> toIntegerList(int[] intList) {
+        List<Integer> integerList = new ArrayList<>();
+        for (int temp : intList) {
+            integerList.add(temp);
+        }
+        return integerList;
+    }
+
     public static List<Double> toDoubleList(int[] intList) {
         List<Double> doubleList = new ArrayList<>();
         for (int temp : intList) {
