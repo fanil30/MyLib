@@ -1,6 +1,6 @@
-package com.wang.maths.matrix;
+package com.wang.math.matrix;
 
-import com.wang.maths.IOperation;
+import com.wang.math.IOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +116,7 @@ public class Matrix<T> {
             //从第j列开始，参照主元行从第i个元素开始（因为前i-1个已为0）进行操作,会把第i个元素变为0
             for (int j = i + 1; j < row; j++) {
 
-                T scale = iOperation.chu(get(j, i), get(i, i));
+                T scale = iOperation.divide(get(j, i), get(i, i));
 
                 //第i行为主元行，第j行为需要操作的行，对第j行从i开始的每个元素进行操作
                 for (int k = i; k < column; k++) {
@@ -126,8 +126,8 @@ public class Matrix<T> {
                         // 操作行 = 操作行 - 主元行 * scale
                         a[j][k] = a[j][k] - a[i][k] * scale;
                     */
-                    T result = iOperation.cheng(get(i, k), scale);
-                    result = iOperation.jian(get(j, k), result);
+                    T result = iOperation.multiply(get(i, k), scale);
+                    result = iOperation.subtract(get(j, k), result);
                     set(j, k, result);
                 }
 
@@ -156,7 +156,7 @@ public class Matrix<T> {
         int swapRowCount = cloneMatrix.forwardElimination();
         T result = cloneMatrix.get(0, 0);
         for (int i = 1; i < cloneMatrix.getRow(); i++) {
-            result = iOperation.cheng(result, cloneMatrix.get(i, i));
+            result = iOperation.multiply(result, cloneMatrix.get(i, i));
         }
         if (swapRowCount % 2 == 1) {
             iOperation.opposite(result);

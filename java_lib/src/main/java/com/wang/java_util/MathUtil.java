@@ -3,9 +3,51 @@ package com.wang.java_util;
 import java.util.Random;
 
 /**
- * Created by 王荣俊 on 2016/4/1.
+ * by 王荣俊 on 2016/4/1.
  */
 public class MathUtil {
+
+    /**
+     * 求两个正整数之最大公因数，使用辗转相除法， 又名欧几里德算法（Euclidean algorithm）
+     * <p/>
+     * 例：求 15750 与27216的最大公约数。
+     * ∵27216=15750×1+11466 ∴（15750，27216）=（15750，11466）
+     * ∵15750=11466×1+4284  ∴（15750，11466）=(11466,4284)
+     * ∵11466=4284×2+2898  ∴(11466,4284)=（4284，2898）
+     * ∵4284=2898×1+1386   ∴（4284，2898）=（2898，1386）
+     * ∵2898=1386×2+126   ∴（2898，1386）=（1386，126）
+     * ∵1386=126×11     ∴（1386，126）= （126，0）
+     * 所以（15750，27216）=216
+     */
+    public static long maxCommonDivisor(long n1, long n2) {
+
+        if (n1 < 1 || n2 < 1) {
+            return -1;
+        }
+
+        if (n1 < n2) {//保证n1 >= n2
+            long temp = n1;
+            n1 = n2;
+            n2 = temp;
+        }
+        while (true) {
+            //例如，此时是（1386，126）
+            long temp = n2;
+            n2 = n1 % n2;
+            n1 = temp;
+            //到这里，就变成（126，0），其中1386%126=0
+            if (n2 == 0) {
+                return n1;
+            }
+        }
+    }
+
+    /**
+     * 求最小公倍数
+     */
+    public static long minCommonMultiple(long n1, long n2) {
+        return n1 * n2 / maxCommonDivisor(n1, n2);
+    }
 
     /**
      * 5000位--6秒

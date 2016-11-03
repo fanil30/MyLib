@@ -1,4 +1,4 @@
-package com.wang.maths.matrix;
+package com.wang.math.matrix;
 
 /**
  * by wangrongjun on 2016/10/30.

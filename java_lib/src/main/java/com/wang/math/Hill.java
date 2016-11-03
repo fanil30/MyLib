@@ -1,8 +1,8 @@
-package com.wang.maths;
+package com.wang.math;
 
 import com.wang.java_util.TextUtil;
-import com.wang.maths.matrix.Matrix;
-import com.wang.maths.matrix.MatrixUtil;
+import com.wang.math.matrix.Matrix;
+import com.wang.math.matrix.MatrixUtil;
 
 import java.util.ArrayList;
 import java.util.List;

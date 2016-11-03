@@ -1,6 +1,6 @@
-package com.wang.maths.matrix;
+package com.wang.math.matrix;
 
-import com.wang.maths.IOperation;
+import com.wang.math.fraction.Fraction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +26,14 @@ public class MatrixUtil {
         return doubleList;
     }
 
+    public static List<Fraction> toFractionList(int[] intList) {
+        List<Fraction> fractionList = new ArrayList<>();
+        for (int temp : intList) {
+            fractionList.add(new Fraction(temp, 1));
+        }
+        return fractionList;
+    }
+
     /**
      * 矩阵相乘
      *
@@ -38,18 +46,18 @@ public class MatrixUtil {
         }
 
         int publicLength = matrix1.getColumn();
-        IOperation<T> iOperation = matrix1.getIOperation();
+        com.wang.math.IOperation<T> iOperation = matrix1.getIOperation();
         Matrix<T> matrix = new Matrix<>(matrix1.getRow(), matrix2.getColumn(), iOperation);
 
         for (int i = 0; i < matrix.getRow(); i++) {
             for (int j = 0; j < matrix.getColumn(); j++) {
                 T element = iOperation.getZero();
                 for (int k = 0; k < publicLength; k++) {
-                    T temp = iOperation.cheng(
+                    T temp = iOperation.multiply(
                             matrix1.get(i, k),
                             matrix2.get(k, j)
                     );
-                    element = iOperation.jia(element, temp);
+                    element = iOperation.add(element, temp);
                     matrix.set(i, j, element);
                 }
             }
@@ -96,7 +104,7 @@ public class MatrixUtil {
 
         List<T> resultList = new ArrayList<>();
         int n = matrix.getRow();
-        IOperation<T> iOperation = matrix.getIOperation();
+        com.wang.math.IOperation<T> iOperation = matrix.getIOperation();
 
         for (int i = n - 1; i >= 0; i--) {
             T temp = iOperation.getZero();
@@ -104,13 +112,13 @@ public class MatrixUtil {
             for (int j = n - 1; j >= i; j--) {
                 if (j == i) {
 //                    示例代码：resultList.add((a[i][n] - temp) / a[i][j]);
-                    T t = iOperation.jian(matrix.get(i, n), temp);
-                    t = iOperation.chu(t, matrix.get(i, j));
+                    T t = iOperation.subtract(matrix.get(i, n), temp);
+                    t = iOperation.divide(t, matrix.get(i, j));
                     resultList.add(t);
                 } else {
 //                    示例代码：temp += a[i][j] * resultList.get(index++);
-                    T t = iOperation.cheng(matrix.get(i, j), resultList.get(index++));
-                    temp = iOperation.jia(temp, t);
+                    T t = iOperation.multiply(matrix.get(i, j), resultList.get(index++));
+                    temp = iOperation.add(temp, t);
                 }
             }
         }
@@ -135,7 +143,7 @@ public class MatrixUtil {
         }
 
         int n = matrix.getRow();
-        IOperation<T> iOperation = matrix.getIOperation();
+        com.wang.math.IOperation<T> iOperation = matrix.getIOperation();
         Matrix<T> reverseMatrix = new Matrix<>(n, n, iOperation);
 
         for (int i = 0; i < n; i++) {
