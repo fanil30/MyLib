@@ -1,6 +1,7 @@
 package com.wang.math;
 
 import com.wang.java_util.TextUtil;
+import com.wang.math.fraction.Fraction;
 import com.wang.math.matrix.Matrix;
 import com.wang.math.matrix.MatrixUtil;
 
@@ -13,10 +14,10 @@ import java.util.List;
 public class Hill {
 
     private int m;//连续的明文字母，也是加密密钥矩阵的维度。
-    private Matrix<Integer> keyMatrix;//加密密钥矩阵
-    private Matrix<Integer> reverseKeyMatrix;
+    private Matrix<Fraction> keyMatrix;//加密密钥矩阵
+    private Matrix<Fraction> reverseKeyMatrix;
 
-    public Hill(Matrix<Integer> keyMatrix) throws Exception {
+    public Hill(Matrix<Fraction> keyMatrix) throws Exception {
         if (keyMatrix == null || keyMatrix.getRow() != keyMatrix.getColumn()) {
             throw new Exception("Error: row != column");
         }
@@ -71,17 +72,20 @@ public class Hill {
             throw new Exception("Error: length != m");
         }
 
-        List<Integer> textMatrixList = new ArrayList<>();
+        //如果unitText="pay" 那么textMatrix=(15, 0, 24)T
+        List<Fraction> textMatrixList = new ArrayList<>();
         for (int i = 0; i < m; i++) {
-            textMatrixList.add(toNumber(unitText.charAt(i)) % 26);
+            textMatrixList.add(new Fraction(toNumber(unitText.charAt(i)) % 26, 1));
         }
-        Matrix<Integer> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.integerIOperation);
+        Matrix<Fraction> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.fractionIOperation);
 
-        Matrix<Integer> resultMatrix = MatrixUtil.cheng(keyMatrix, textMatrix);
+        //如果unitText="pay" 那么resultMatrix=(11, 13, 18)，这几个数由keyMatrix和textMatrix决定。
+        Matrix<Fraction> resultMatrix = MatrixUtil.cheng(keyMatrix, textMatrix);
 
         String s = "";
         for (int i = 0; i < m; i++) {
-            s += toLetter(resultMatrix.get(i, 0) % 26);
+//            s += toLetter(resultMatrix.get(i, 0) % 26);
+            s += toLetter((int) (resultMatrix.get(i, 0).toLong() % 26));
         }
         return s;
     }
@@ -95,22 +99,22 @@ public class Hill {
             throw new Exception("Error: length != m");
         }
 
-        List<Integer> textMatrixList = new ArrayList<>();
+        List<Fraction> textMatrixList = new ArrayList<>();
         for (int i = 0; i < m; i++) {
-            textMatrixList.add(toNumber(unitText.charAt(i)) % 26);
+            textMatrixList.add(new Fraction(toNumber(unitText.charAt(i)) % 26, 1));
         }
 
-        Matrix<Integer> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.integerIOperation);
+        Matrix<Fraction> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.fractionIOperation);
 
         //与encodeUnit唯一有区别的地方
         if (reverseKeyMatrix == null) {
             reverseKeyMatrix = MatrixUtil.reverse(keyMatrix);
         }
-        Matrix<Integer> resultMatrix = MatrixUtil.cheng(reverseKeyMatrix, textMatrix);
+        Matrix<Fraction> resultMatrix = MatrixUtil.cheng(reverseKeyMatrix, textMatrix);
 
         String s = "";
         for (int i = 0; i < m; i++) {
-            s += toLetter(resultMatrix.get(i, 0) % 26);
+            s += toLetter((int) (resultMatrix.get(i, 0).toLong() % 26));
         }
         return s;
     }

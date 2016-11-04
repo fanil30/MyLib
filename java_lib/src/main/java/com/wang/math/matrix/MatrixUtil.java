@@ -1,5 +1,6 @@
 package com.wang.math.matrix;
 
+import com.wang.math.IOperation;
 import com.wang.math.fraction.Fraction;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class MatrixUtil {
         }
 
         int publicLength = matrix1.getColumn();
-        com.wang.math.IOperation<T> iOperation = matrix1.getIOperation();
+        IOperation<T> iOperation = matrix1.getIOperation();
         Matrix<T> matrix = new Matrix<>(matrix1.getRow(), matrix2.getColumn(), iOperation);
 
         for (int i = 0; i < matrix.getRow(); i++) {
@@ -104,7 +105,7 @@ public class MatrixUtil {
 
         List<T> resultList = new ArrayList<>();
         int n = matrix.getRow();
-        com.wang.math.IOperation<T> iOperation = matrix.getIOperation();
+        IOperation<T> iOperation = matrix.getIOperation();
 
         for (int i = n - 1; i >= 0; i--) {
             T temp = iOperation.getZero();
@@ -142,8 +143,13 @@ public class MatrixUtil {
             throw new MatrixException("Error: row != column");
         }
 
+        IOperation<T> iOperation = matrix.getIOperation();
+
+        if (iOperation.compare(matrix.determinant(), iOperation.getZero()) == 0) {
+            throw new MatrixException("Error: det = zero");
+        }
+
         int n = matrix.getRow();
-        com.wang.math.IOperation<T> iOperation = matrix.getIOperation();
         Matrix<T> reverseMatrix = new Matrix<>(n, n, iOperation);
 
         for (int i = 0; i < n; i++) {

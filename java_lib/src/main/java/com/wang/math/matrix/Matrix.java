@@ -164,17 +164,22 @@ public class Matrix<T> {
         return result;
     }
 
-    public void show() {
+    @Override
+    public String toString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {
-                builder.append(get(i, j)).append("     ");
+                builder.append(get(i, j)).append("\t\t");
                 if (j == column - 1) {
                     builder.append("\n\n");
                 }
             }
         }
-        System.out.println(builder.toString());
+        return builder.toString();
+    }
+
+    public void show() {
+        System.out.println(toString());
     }
 
 }

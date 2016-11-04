@@ -5,6 +5,7 @@ import com.wang.java_util.MathUtil;
 /**
  * by wangrongjun on 2016/11/3.
  * 分数类型
+ * 允许分母为0，表示为NaN。如果NaN与其他任何分数进行任一运算，结果为NaN
  */
 public class Fraction {
     /**
@@ -83,6 +84,7 @@ public class Fraction {
         return new Fraction(son1 - son2, minCommonMultiple);
     }
 
+    //TODO 可以进行优化，在分子与分子相乘，分母与分母相乘之前进行预处理，避免数据溢出
     public Fraction multiply(Fraction fraction) {
         if (this.getMother() == 0 || fraction.getMother() == 0) {
             return new Fraction(0, 0);
@@ -100,7 +102,13 @@ public class Fraction {
         return multiply(fraction.reverse());
     }
 
+    /**
+     * 如果为NaN，返回1（无穷大）
+     */
     public int compare(Fraction fraction) {
+        if (mother == 0) {
+            return 1;
+        }
         if (this.getSon() == fraction.getSon() &&
                 this.getMother() == fraction.getMother() &&
                 this.isPositive() == fraction.isPositive()) {
@@ -131,6 +139,10 @@ public class Fraction {
             return (isPositive() ? "" : "-") + getSon();
         }
         return (isPositive() ? "" : "-") + getSon() + "/" + getMother();
+    }
+
+    public long toLong() {
+        return son / mother;
     }
 
     public long getSon() {
