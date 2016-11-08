@@ -5,6 +5,8 @@ import java.io.StringWriter;
 
 public class DebugUtil {
 
+    public static boolean isDebug = true;
+
     /**
      * 类似System.out.println()，但会返回调用该方法的位置信息
      * <p/>
@@ -14,11 +16,15 @@ public class DebugUtil {
      * your message\n
      */
     public static String println(String message) {
-        return getDebugMessage(message, 2) + "\n";
+        String s = getDebugMessage(message, 2) + "\n";
+        if (isDebug) {
+            System.out.println(s);
+        }
+        return s;
     }
 
     public static String printlnEntity(Object entity) {
-        return getDebugMessage(GsonUtil.formatJson(entity), 2);
+        return println(GsonUtil.formatJson(entity));
     }
 
     public static int getErrorLine(Exception e) {

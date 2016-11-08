@@ -74,6 +74,18 @@ public class IntentUtil {
     }
 
     /**
+     * Intent 打开文件浏览器 http://blog.csdn.net/waww116529/article/details/51426873
+     */
+    public static Intent getFileIntent() {
+        // 打开系统文件浏览功能  
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        return intent;
+    }
+
+    /**
      * http://blog.csdn.net/sp6645597/article/details/20215563
      * android Uri获取真实路径转换成File的方法
      */

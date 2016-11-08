@@ -80,7 +80,7 @@ public class Hill {
         Matrix<Fraction> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.fractionIOperation);
 
         //如果unitText="pay" 那么resultMatrix=(11, 13, 18)，这几个数由keyMatrix和textMatrix决定。
-        Matrix<Fraction> resultMatrix = MatrixUtil.cheng(keyMatrix, textMatrix);
+        Matrix<Fraction> resultMatrix = MatrixUtil.multiply(keyMatrix, textMatrix);
 
         String s = "";
         for (int i = 0; i < m; i++) {
@@ -110,7 +110,7 @@ public class Hill {
         if (reverseKeyMatrix == null) {
             reverseKeyMatrix = MatrixUtil.reverse(keyMatrix);
         }
-        Matrix<Fraction> resultMatrix = MatrixUtil.cheng(reverseKeyMatrix, textMatrix);
+        Matrix<Fraction> resultMatrix = MatrixUtil.multiply(reverseKeyMatrix, textMatrix);
 
         String s = "";
         for (int i = 0; i < m; i++) {

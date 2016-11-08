@@ -1,6 +1,6 @@
 package com.wang.test;
 
-import com.wang.java_util.MathUtil;
+import com.wang.java_util.Pair;
 import com.wang.math.Hill;
 import com.wang.math.IOperation;
 import com.wang.math.fraction.Fraction;
@@ -8,44 +8,35 @@ import com.wang.math.matrix.Matrix;
 import com.wang.math.matrix.MatrixException;
 import com.wang.math.matrix.MatrixUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class JavaLibTestClass {
 
-    public static void main(String[] args) {
-        for (int i = 0; i < 100000; i++) {
+    public static void main(String[] a) throws MatrixException {
+        
+        Matrix<Fraction> keyMatrix = new Matrix<>(MatrixUtil.toFractionList(new int[]{
+                17, 17, 5,
+                21, 18, 21,
+                2, 2, 19,
+        }), 3, 3, IOperation.fractionIOperation);
 
-            //生成随机整数矩阵
-            List<Fraction> fractionList = new ArrayList<>();
-            for (int j = 0; j < 9; j++) {
-                int son = MathUtil.random(0, 100);
-                fractionList.add(new Fraction(son, 1));
+        Pair<Fraction, Matrix<Fraction>> matrixPair = MatrixUtil.reverseWithMultiple(keyMatrix);
+        System.out.println(matrixPair.first);
+        final Matrix<Fraction> matrix = matrixPair.second;
+        matrix.iterator(new Matrix.Iterator<Fraction>() {
+            @Override
+            public void next(int i, int j, int index, Fraction element) {
+                matrix.set(i, j, new Fraction(element.getSon() % 26, 1));
             }
+        });
+        matrix.show();
 
-            Matrix<Fraction> matrix = new Matrix<>(fractionList, 3, 3, IOperation.fractionIOperation);
-            Matrix<Fraction> reverseMatrix;
-            try {
-                reverseMatrix = MatrixUtil.reverse(matrix);
-            } catch (MatrixException e) {
-                continue;
-            }
+        Matrix<Fraction> rightMatrix = new Matrix<>(MatrixUtil.toFractionList(new int[]{
+                15,
+                0,
+                24,
+        }), 3, 1, IOperation.fractionIOperation);
 
-            //判断元素是否全为正整数
-            boolean isAllTrue = true;
-            for (int j = 0; j < 9; j++) {
-                Fraction fraction = reverseMatrix.get(j);
-                if (fraction.getMother() != 1 || !fraction.isPositive()) {
-                    isAllTrue = false;
-                }
-            }
-            if (isAllTrue) {
-                matrix.show();
-                System.out.println();
-                reverseMatrix.show();
-                return;
-            }
-        }
+        MatrixUtil.multiply(keyMatrix, rightMatrix).show();
+
     }
 
     public static void main111(String[] args) throws Exception {

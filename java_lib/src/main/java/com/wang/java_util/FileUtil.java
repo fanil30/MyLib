@@ -72,7 +72,7 @@ public class FileUtil {
      * 递归复制指定目录及其以下的所有文件到另一个目录之下。如E:/a/这个文件夹复制到F:/test/下
      * 则 copyDir(new File("E:/a/"), new File("E:/test/"));
      */
-    public static void copyDir(File fromDir, File toDir) throws Exception {
+    public static void copyDir(File fromDir, File toDir) throws IOException {
         if (fromDir == null || !fromDir.exists()) {
             return;
         }
@@ -110,7 +110,7 @@ public class FileUtil {
         }
     }
 
-    public static void writeObject(Object object, String path) throws Exception {
+    public static void writeObject(Object object, String path) throws IOException {
         File file = new File(path);
         if (!file.exists()) {
             file.createNewFile();
@@ -156,7 +156,7 @@ public class FileUtil {
         }
     }
 
-    public static ArrayList<String> readLines(String filePath) throws Exception {
+    public static ArrayList<String> readLines(String filePath) throws IOException {
         ArrayList<String> lines = new ArrayList<>();
         InputStreamReader isr = new InputStreamReader(new FileInputStream(filePath));
         BufferedReader br = new BufferedReader(isr);
@@ -169,14 +169,14 @@ public class FileUtil {
         return lines;
     }
 
-    public static void write(String content, String path) throws Exception {
+    public static void write(String content, String path) throws IOException {
         write(content, path, "utf-8");
     }
 
-    public static void write(String content, String path, String charset) throws Exception {
+    public static void write(String content, String path, String charset) throws IOException {
 
         if (TextUtil.isEmpty(path)) {
-            throw new Exception("filePath is null");
+            throw new IOException("filePath is null");
         }
 
         if (content == null) {
@@ -233,7 +233,7 @@ public class FileUtil {
      * @param duration listener回调通知进度的时间间隔，0则只有下载完成时回调
      */
     public static void download(String strUrl, String cookie, String filePath,
-                                OnDownloadListener listener, int duration) throws Exception {
+                                OnDownloadListener listener, int duration) throws IOException {
 
         InputStream is = null;
         FileOutputStream fos = null;
@@ -261,7 +261,7 @@ public class FileUtil {
                 if (file != null) {
                     file.delete();
                 }
-                throw new Exception(DebugUtil.println("长度为空,下载失败"));
+                throw new IOException(DebugUtil.println("长度为空,下载失败"));
             }
 
             is = conn.getInputStream();
@@ -311,17 +311,17 @@ public class FileUtil {
                     fos.close();
                     file.delete();
                 }
-                throw new Exception(DebugUtil.println(" 下载失败，下载提前结束  "
+                throw new IOException(DebugUtil.println(" 下载失败，下载提前结束  "
                         + strUrl));
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             if (file != null & is != null && fos != null) {
                 is.close();
                 fos.close();
                 file.delete();
             }
-            throw new Exception(" 下载失败，网络连接不稳定， " + strUrl
+            throw new IOException(" 下载失败，网络连接不稳定， " + strUrl
                     + DebugUtil.println(e.toString()));
 
         }

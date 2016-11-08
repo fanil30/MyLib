@@ -164,6 +164,18 @@ public class Matrix<T> {
         return result;
     }
 
+    public interface Iterator<T> {
+        void next(int i, int j, int index, T element);
+    }
+
+    public void iterator(Iterator<T> iterator) {
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < column; j++) {
+                iterator.next(i, j, i * column + j, get(i, j));
+            }
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

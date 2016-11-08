@@ -133,4 +133,16 @@ public class MathUtil {
         return i + left;
     }
 
+    /**
+     * 求余
+     *
+     * @param n1 可为负数
+     */
+    public static int getRemain(int n1, int n2) {
+        while (n1 < 0) {
+            n1 += n2;
+        }
+        return n1 % n2;
+    }
+
 }
