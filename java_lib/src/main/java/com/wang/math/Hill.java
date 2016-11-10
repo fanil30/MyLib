@@ -1,7 +1,7 @@
 package com.wang.math;
 
+import com.wang.java_util.MathUtil;
 import com.wang.java_util.TextUtil;
-import com.wang.math.fraction.Fraction;
 import com.wang.math.matrix.Matrix;
 import com.wang.math.matrix.MatrixException;
 import com.wang.math.matrix.MatrixUtil;
@@ -15,18 +15,18 @@ import java.util.List;
 public class Hill {
 
     private int m;//连续的明文字母，也是加密密钥矩阵的维度。
-    private Matrix<Fraction> keyMatrix;
-    private Matrix<Fraction> reverseKeyMatrix;
+    private Matrix<Integer> keyMatrix;
+    private Matrix<Integer> reverseKeyMatrix;
 
     /**
      * @param keyMatrix 加密密钥矩阵，必须行等于列，det必须为1
      */
-    public Hill(Matrix<Fraction> keyMatrix) throws Exception {
+    public Hill(Matrix<Integer> keyMatrix) throws Exception {
         if (keyMatrix == null || keyMatrix.getRow() != keyMatrix.getColumn()) {
             throw new Exception("Error: row != column");
         }
         this.keyMatrix = keyMatrix;
-        if (keyMatrix.determinant().compare(new Fraction(1, 1)) == 0) {
+        if (keyMatrix.determinant() == 1) {
             calculateReverseKeyMatrix();
         } else {
             throw new Exception("Error: det != 1");
@@ -85,20 +85,20 @@ public class Hill {
         }
 
         //如果unitText="pay" 那么textMatrix=(15, 0, 24)T
-        List<Fraction> textMatrixList = new ArrayList<>();
+        List<Integer> textMatrixList = new ArrayList<>();
         for (int i = 0; i < m; i++) {
-            textMatrixList.add(new Fraction(toNumber(unitText.charAt(i)) % 26, 1));
+            textMatrixList.add(toNumber(unitText.charAt(i)) % 26);
         }
-        Matrix<Fraction> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.fractionIOperation);
+        Matrix<Integer> textMatrix = new Matrix<>(textMatrixList, m, 1, IOperation.integerIOperation);
 
         //如果unitText="pay" 那么resultMatrix=(11, 13, 18)，这几个数由keyMatrix和textMatrix决定。
-        Matrix<Fraction> resultMatrix =
+        Matrix<Integer> resultMatrix =
                 MatrixUtil.multiply(isEncode ? keyMatrix : reverseKeyMatrix, textMatrix);
 
         String s = "";
         for (int i = 0; i < m; i++) {
 //            s += toLetter(resultMatrix.get(i, 0) % 26);
-            s += toLetter((int) (resultMatrix.get(i, 0).toLong() % 26));
+            s += toLetter(resultMatrix.get(i, 0) % 26);
         }
         return s;
     }
@@ -109,19 +109,14 @@ public class Hill {
     private void calculateReverseKeyMatrix() throws MatrixException {
 
         reverseKeyMatrix = MatrixUtil.reverse(keyMatrix);
-        reverseKeyMatrix.iterator(new Matrix.Iterator<Fraction>() {
+        reverseKeyMatrix.iterator(new Matrix.Iterator<Integer>() {
             @Override
-            public void next(int i, int j, int index, Fraction element) {
-                long son = element.getSon();
-                if (!element.isPositive()) {
-                    son = -son;
-                    while (son < 0) {
-                        son += 26;
-                    }
-                } else {
-                    son = son % 26;
+            public void next(int i, int j, int index, Integer element) {
+                while (element < 0) {
+                    element += 26;
                 }
-                reverseKeyMatrix.set(i, j, new Fraction(son, 1));
+                element = element % 26;
+                reverseKeyMatrix.set(i, j, element);
             }
         });
     }
@@ -134,7 +129,42 @@ public class Hill {
         return letter - 'a';
     }
 
-    public Matrix<Fraction> getReverseKeyMatrix() {
+    public Matrix<Integer> getReverseKeyMatrix() {
         return reverseKeyMatrix;
+    }
+
+
+    public static void test(String[] args) throws Exception {
+
+        Matrix<Integer> keyMatrix = new Matrix<>(MatrixUtil.toIntegerList(new int[]{
+                1, 7, 3, 2,
+                0, 1, 4, 3,
+                0, 0, 1, 9,
+                0, 0, 0, 1
+        }), 4, 4, IOperation.integerIOperation);
+
+        keyMatrix.show();
+        System.out.println();
+
+        Hill hill = new Hill(keyMatrix);
+
+        hill.getReverseKeyMatrix().show();
+        System.out.println();
+
+//        String text = "we will attack tomorrow six";
+        for (int i = 0; i < 30; i++) {
+            String text = "";
+            for (int j = 0; j < MathUtil.random(1, 30); j++) {
+                text += (char) MathUtil.random('a', 'z');
+            }
+
+            String encode = hill.encode(text);
+            String decode = hill.decode(encode);
+
+            System.out.println("  text: " + text);
+            System.out.println("encode: " + encode);
+            System.out.println("decode: " + decode);
+            System.out.println();
+        }
     }
 }
