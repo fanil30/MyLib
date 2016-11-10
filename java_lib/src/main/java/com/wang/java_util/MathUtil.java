@@ -1,11 +1,39 @@
 package com.wang.java_util;
 
+import java.util.List;
 import java.util.Random;
 
 /**
  * by 王荣俊 on 2016/4/1.
  */
 public class MathUtil {
+
+    /**
+     * 欧几里德算法求多个数的最大公约数
+     */
+    public static Long gcd(List<Long> longList) {
+        long gcd = longList.get(0);
+        for (int i = 0; i < longList.size() - 1; i++) {
+            gcd = gcd(gcd, longList.get(i + 1));
+            if (gcd == 1) return gcd;//如果当前两个的最大公约数已经为1，就没必要继续求解了
+        }
+        return gcd;
+    }
+
+    /**
+     * 欧几里德算法的递归实现
+     */
+    public static long gcd(long a, long b) {
+//        保证a不小于b
+        if (a < b) {
+            long temp = a;
+            a = b;
+            b = temp;
+        }
+//        核心算法：gcd(a, b) = gcd(b , a%b)
+        if (b == 0) return a;
+        else return gcd(b, a % b);
+    }
 
     /**
      * 求两个正整数之最大公因数，使用辗转相除法， 又名欧几里德算法（Euclidean algorithm）
@@ -131,18 +159,6 @@ public class MathUtil {
         Random random = new Random();
         int i = random.nextInt(right - left + 1);//例如random.nextInt(10)，会返回0至9的一个随机整数
         return i + left;
-    }
-
-    /**
-     * 求余
-     *
-     * @param n1 可为负数
-     */
-    public static int getRemain(int n1, int n2) {
-        while (n1 < 0) {
-            n1 += n2;
-        }
-        return n1 % n2;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.wang.android_lib.util;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -132,6 +133,18 @@ public class DialogUtil {
             dialog.cancel();
             dialog = null;
         }
+    }
+
+    public static void showDatePickerDialog(final Context context,
+                                            String title,
+                                            int year,
+                                            int monthOfYear,
+                                            int dayOfMonth,
+                                            DatePickerDialog.OnDateSetListener listener) {
+        DatePickerDialog dialog = new DatePickerDialog(context, listener, year, monthOfYear, dayOfMonth);
+        dialog.setTitle(title);
+        dialog.setCancelable(true);
+        dialog.show();
     }
 
 }

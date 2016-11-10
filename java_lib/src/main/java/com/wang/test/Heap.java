@@ -10,10 +10,10 @@ public class Heap<T> {
     public static int basicOperationCount = 0;
 
     private List<T> list;
-    private SortHelper.ISort<T> iSort;
+    private ISort<T> iSort;
     private int begin;//数组中堆的起始位置（即堆的范围从begin到heapList.heapSize-1）
 
-    public Heap(List<T> list, SortHelper.ISort<T> iSort) {
+    public Heap(List<T> list, ISort<T> iSort) {
         this.list = list;
         this.iSort = iSort;
         begin = 0;
@@ -54,12 +54,12 @@ public class Heap<T> {
             int rightChild = parent * 2 + 2;
             int max = parent;
             if (leftChild < heapSize() && iSort.compare(
-                    getHeapItem(leftChild), getHeapItem(max)) == SortHelper.Compare.BIGGER) {
+                    getHeapItem(leftChild), getHeapItem(max)) == 1) {
                 //如果左孩子存在且左孩子比max（这里是parent）大
                 max = leftChild;
             }
             if (rightChild < heapSize() && iSort.compare(
-                    getHeapItem(rightChild), getHeapItem(max)) == SortHelper.Compare.BIGGER) {
+                    getHeapItem(rightChild), getHeapItem(max)) == 1) {
                 //如果右孩子存在且右孩子比max（parent或leftChild）大
                 max = rightChild;
             }

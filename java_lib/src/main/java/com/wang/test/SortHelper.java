@@ -11,14 +11,6 @@ import java.util.List;
  */
 public class SortHelper {
 
-    public enum Compare {
-        EQUAL, SMALLER, BIGGER
-    }
-
-    public interface ISort<T> {
-        Compare compare(T entity1, T entity2);
-    }
-
     private static <T> void swap(List<T> entityList, int index1, int index2) {
         T entity1 = entityList.get(index1);
         T entity2 = entityList.get(index2);
@@ -50,7 +42,7 @@ public class SortHelper {
         for (int i = 0; i < entityList.size() - 1; i++) {
             for (int j = 0; j < entityList.size() - i - 1; j++) {
                 basicOperationCount++;
-                if (iSort.compare(entityList.get(j), entityList.get(j + 1)) == Compare.BIGGER) {
+                if (iSort.compare(entityList.get(j), entityList.get(j + 1)) == 1) {
                     swap(entityList, j, j + 1);
                 }
             }
@@ -67,7 +59,7 @@ public class SortHelper {
             int k = i;
             for (int j = i + 1; j < entityList.size(); j++) {
                 basicOperationCount++;
-                if (iSort.compare(entityList.get(k), entityList.get(j)) == Compare.BIGGER) {
+                if (iSort.compare(entityList.get(k), entityList.get(j)) == 1) {
                     k = j;
                 }
             }
@@ -89,7 +81,7 @@ public class SortHelper {
         for (int position = 1; position < entityList.size(); position++) {
             int i = position - 1;
             basicOperationCount++;
-            while (i >= 0 && iSort.compare(entityList.get(i), entityList.get(i + 1)) == Compare.BIGGER) {
+            while (i >= 0 && iSort.compare(entityList.get(i), entityList.get(i + 1)) == 1) {
                 swap(entityList, i, i + 1);
                 i--;
             }
@@ -126,7 +118,7 @@ public class SortHelper {
         int positionB = 0;
         while (positionA < listA.size() && positionB < listB.size()) {
             basicOperationCount++;
-            if (iSort.compare(listA.get(positionA), listB.get(positionB)) == Compare.BIGGER) {
+            if (iSort.compare(listA.get(positionA), listB.get(positionB)) == 1) {
                 list.add(listB.get(positionB));
                 positionB++;
             } else {
@@ -158,10 +150,10 @@ public class SortHelper {
 
         int middle = left;
         while (true) {
-            while (iSort.compare(entityList.get(left), entityList.get(middle)) != Compare.BIGGER) {//left<=middle
+            while (iSort.compare(entityList.get(left), entityList.get(middle)) != 1) {//left<=middle
                 left++;
             }
-            while (iSort.compare(entityList.get(right), entityList.get(middle)) != Compare.BIGGER) {//right<=middle
+            while (iSort.compare(entityList.get(right), entityList.get(middle)) != 1) {//right<=middle
                 right--;
             }
             if (left < right) {
@@ -193,22 +185,22 @@ public class SortHelper {
     public static void sortTest(String[] args) throws Exception {
 
         List<User> users = getExample(10);
-        List<User> users1 = SortHelper.copy(users);
-        List<User> users2 = SortHelper.copy(users);
-        List<User> users3 = SortHelper.copy(users);
-        List<User> users4 = SortHelper.copy(users);
-        List<User> users5 = SortHelper.copy(users);
-        List<User> users6 = SortHelper.copy(users);
+        List<User> users1 = copy(users);
+        List<User> users2 = copy(users);
+        List<User> users3 = copy(users);
+        List<User> users4 = copy(users);
+        List<User> users5 = copy(users);
+        List<User> users6 = copy(users);
 
-        SortHelper.ISort<User> iSort = new SortHelper.ISort<User>() {
+        ISort<User> iSort = new ISort<User>() {
             @Override
-            public SortHelper.Compare compare(User entity1, User entity2) {
+            public int compare(User entity1, User entity2) {
                 if (entity1.getAge() < entity2.getAge()) {
-                    return SortHelper.Compare.SMALLER;
+                    return -1;
                 } else if (entity1.getAge() == entity2.getAge()) {
-                    return SortHelper.Compare.EQUAL;
+                    return 0;
                 } else {
-                    return SortHelper.Compare.BIGGER;
+                    return 1;
                 }
             }
         };
@@ -218,47 +210,47 @@ public class SortHelper {
 
         System.out.println("开始进行冒泡");
         currentTimeMillis = System.currentTimeMillis();
-        int sortBubble = SortHelper.sortBubble(users1, iSort);
+        int sortBubble = sortBubble(users1, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
         System.out.println("基本操作次数：" + sortBubble + "\n");
 
         System.out.println("开始进行选择");
         currentTimeMillis = System.currentTimeMillis();
-        int sortSelect = SortHelper.sortSelect(users2, iSort);
+        int sortSelect = sortSelect(users2, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
         System.out.println("基本操作次数：" + sortSelect + "\n");
 
         System.out.println("开始进行合并");
         currentTimeMillis = System.currentTimeMillis();
-        SortHelper.sortMerge(users3, iSort);
+        sortMerge(users3, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
-        System.out.println("基本操作次数：" + SortHelper.basicOperationCount + "\n");
+        System.out.println("基本操作次数：" + basicOperationCount + "\n");
 
         System.out.println("开始进行插入");
         currentTimeMillis = System.currentTimeMillis();
-        int sortInsertion = SortHelper.sortInsertion(users4, iSort);
+        int sortInsertion = sortInsertion(users4, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
         System.out.println("基本操作次数：" + sortInsertion + "\n");
 
         System.out.println("开始进行堆排序");
         currentTimeMillis = System.currentTimeMillis();
-        int sortHeap = SortHelper.sortHeap(users5, iSort);
+        int sortHeap = sortHeap(users5, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
         System.out.println("基本操作次数：" + sortHeap + "\n");
 
         System.out.println("开始进行快速");
         currentTimeMillis = System.currentTimeMillis();
-        int sortQuick = SortHelper.sortQuick(users6, iSort);
+        int sortQuick = sortQuick(users6, iSort);
         time = (System.currentTimeMillis() - currentTimeMillis) / 1000.0;
         System.out.println("用时：" + time + " 秒");
         System.out.println("基本操作次数：" + sortQuick + "\n");
 
-        SortHelper.sortQuick(users, iSort);
+        sortQuick(users, iSort);
         GsonUtil.printFormatJson(users);
 
     }

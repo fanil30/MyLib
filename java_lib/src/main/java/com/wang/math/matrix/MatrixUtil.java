@@ -1,6 +1,5 @@
 package com.wang.math.matrix;
 
-import com.wang.java_util.Pair;
 import com.wang.math.IOperation;
 import com.wang.math.fraction.Fraction;
 
@@ -166,48 +165,6 @@ public class MatrixUtil {
         }
 
         return reverseMatrix;
-    }
-
-    /**
-     * 计算矩阵的逆（返回系数）
-     */
-    public static <T> Pair<T, Matrix<T>> reverseWithMultiple(Matrix<T> matrix) throws MatrixException {
-
-        if (matrix.getRow() != matrix.getColumn()) {
-            throw new MatrixException("Error: row != column");
-        }
-
-        IOperation<T> iOperation = matrix.getIOperation();
-
-        T det = matrix.determinant();
-        if (iOperation.compare(det, iOperation.getZero()) == 0) {
-            throw new MatrixException("Error: det = zero");
-        }
-
-        int n = matrix.getRow();
-        Matrix<T> reverseMatrix = new Matrix<>(n, n, iOperation);
-
-        for (int i = 0; i < n; i++) {
-            List<T> constantList = new ArrayList<>();//单位矩阵的每一列，如{1,0,0}T, {0,1,0}T
-            for (int j = 0; j < n; j++) {
-                constantList.add(i == j ? iOperation.getUnit() : iOperation.getZero());
-            }
-            List<T> resultList = soluteEquations(matrix, constantList);//组成逆矩阵的每一列
-
-            for (int j = 0; j < n; j++) {
-                if (iOperation.compare(det, iOperation.getUnit()) == 1) {
-                    reverseMatrix.set(j, i, iOperation.multiply(resultList.get(j), det));
-                } else {
-                    reverseMatrix.set(j, i, resultList.get(j));
-                }
-            }
-        }
-
-        T multiple = iOperation.getUnit();// multiple=1
-        if (iOperation.compare(det, iOperation.getUnit()) == 1) {// 若det>1
-            multiple = det;
-        }
-        return new Pair<>(multiple, reverseMatrix);
     }
 
 }
