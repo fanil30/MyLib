@@ -1,4 +1,6 @@
-package com.wang.test;
+package com.wang.math;
+
+import com.wang.math.sort.ISort;
 
 import java.util.List;
 

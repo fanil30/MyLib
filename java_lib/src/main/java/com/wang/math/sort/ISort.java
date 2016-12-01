@@ -1,4 +1,4 @@
-package com.wang.test;
+package com.wang.math.sort;
 
 /**
  * by wangrongjun on 2016/11/10.

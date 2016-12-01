@@ -1,4 +1,4 @@
-package com.wang.math;
+package com.wang.math.encrypt;
 
 import com.wang.java_util.MathUtil;
 import com.wang.java_util.TextUtil;

@@ -1,5 +1,6 @@
 package com.wang.java_util;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Random;
 
@@ -7,6 +8,28 @@ import java.util.Random;
  * by 王荣俊 on 2016/4/1.
  */
 public class MathUtil {
+
+    /**
+     * 指数模运算
+     * http://blog.csdn.net/yanheng0130/article/details/8948263
+     *
+     * @return a ^ b % m
+     */
+    public static BigInteger indexModule(BigInteger a, BigInteger b, BigInteger m) {
+        BigInteger d = new BigInteger("1");
+        // 把b转化为二进制数的字符串表示形式
+        String binaryB = BinaryUtil.toBinaryString(b.toByteArray(), "");
+        char[] charArrayB = binaryB.toCharArray();
+        for (char c : charArrayB) {
+//            d = (d * d) % m;
+            d = d.multiply(d).mod(m);
+            if (c == '1') {
+//                d = (d * a) % m;
+                d = d.multiply(a).mod(m);
+            }
+        }
+        return d;
+    }
 
     /**
      * 欧几里德算法求多个数的最大公约数

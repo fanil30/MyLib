@@ -1,7 +1,8 @@
-package com.wang.test;
+package com.wang.math.sort;
 
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.MathUtil;
+import com.wang.math.Heap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -253,6 +254,24 @@ public class SortHelper {
         sortQuick(users, iSort);
         GsonUtil.printFormatJson(users);
 
+    }
+
+    static class User {
+        private String username;
+        private int age;
+
+        public User(String username, int age) {
+            this.username = username;
+            this.age = age;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public int getAge() {
+            return age;
+        }
     }
 
     public static List<User> getExample(int number) {

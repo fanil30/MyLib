@@ -24,7 +24,11 @@ public class DebugUtil {
     }
 
     public static String printlnEntity(Object entity) {
-        return println(GsonUtil.formatJson(entity));
+        String s = getDebugMessage(GsonUtil.formatJson(entity), 2) + "\n";
+        if (isDebug) {
+            System.out.println(s);
+        }
+        return s;
     }
 
     public static int getErrorLine(Exception e) {

@@ -5,8 +5,8 @@ package com.wang.java_util;
  */
 public class Pair<F, S> {
 
-    public final F first;
-    public final S second;
+    public F first;
+    public S second;
 
     public Pair(F first, S second) {
         this.first = first;
@@ -51,4 +51,8 @@ public class Pair<F, S> {
         return (first == null ? 0 : first.hashCode()) ^ (second == null ? 0 : second.hashCode());
     }
 
+    @Override
+    public String toString() {
+        return first + "  :  " + second;
+    }
 }

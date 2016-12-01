@@ -208,7 +208,7 @@ public class HttpUtil {
                     os.close();
                 }
 
-                r.headerFields = conn.getHeaderFields();
+//                r.headerFields = conn.getHeaderFields();
                 r.setCookie = conn.getHeaderField("Set-Cookie");
                 r.cookie = conn.getHeaderField("Cookie");
                 r.size = TextUtil.transferFileLength(conn.getContentLength(), 2);

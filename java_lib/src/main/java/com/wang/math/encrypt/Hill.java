@@ -1,7 +1,8 @@
-package com.wang.math;
+package com.wang.math.encrypt;
 
 import com.wang.java_util.MathUtil;
 import com.wang.java_util.TextUtil;
+import com.wang.math.IOperation;
 import com.wang.math.matrix.Matrix;
 import com.wang.math.matrix.MatrixException;
 import com.wang.math.matrix.MatrixUtil;
