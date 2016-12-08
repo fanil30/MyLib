@@ -9,6 +9,8 @@ import java.math.BigInteger;
  */
 public class RSA {
 
+    public static String createMessage;
+
     private BigInteger p1;
     private BigInteger p2;
     private BigInteger e;
@@ -16,16 +18,23 @@ public class RSA {
     private BigInteger d;
 
     public RSA(int bit) {
+
+        createMessage = "加密位数：" + bit + "位\n";
+        createMessage += "1.生成两个大素数\n";
+
 //        1.生成两个大素数
         p1 = RSAUtil.createBigPrime(bit);
         p2 = RSAUtil.createBigPrime(bit);
-//        p1 = new BigInteger("101");
-//        p2 = new BigInteger("113");
+
+        createMessage += "大素数p1=" + p1 + "\n";
+        createMessage += "大素数p2=" + p2 + "\n";
 
 //        2.求n
         n = p1.multiply(p2);
 
-//        3.求d
+        createMessage += "公开密钥n=p1*p2=" + n + "\n";
+
+//        3.求fn和e
         BigInteger fn = p1.subtract(BigInteger.ONE).//fn=(p1-1)*(p2-1)
                 multiply(p2.subtract(BigInteger.ONE));
         e = new BigInteger("3");
@@ -33,13 +42,19 @@ public class RSA {
             e = e.add(BigInteger.ONE);
         }
 
+        createMessage += "加密密钥e=" + e + "\n";
+
+//        4.求d
+        d = RSAUtil.modReverse(e, fn);
+
+        createMessage += "私有密钥d=e^-1 mod n=" + d + "\n";
+
         System.out.println("p1=" + p1);
         System.out.println("p2=" + p2);
         System.out.println("n=" + n);
-        System.out.println("e=" + e);
         System.out.println("fn=" + fn);
-
-        d = RSAUtil.modReverse(e, fn);
+        System.out.println("e=" + e);
+        System.out.println("d=" + d);
     }
 
     public BigInteger getE() {
@@ -53,14 +68,14 @@ public class RSA {
     /**
      * RSA加密
      *
-     * @param data 其中的clear的位数要小于n位
-     * @return 返回密文。若clear的位数超出，返回null
+     * @param data 其中的clear要小于n
+     * @return 返回密文。若clear不小于n，返回null
      */
     public static BigInteger encode(RSAData data) {
         BigInteger clear = data.getClear();
         BigInteger e = data.getE();
         BigInteger n = data.getN();
-        if (clear.toString().length() >= n.toString().length()) {
+        if (clear.compareTo(n) >= 0) {//if(clear>=n)
             return null;
         }
         return MathUtil.indexModule(clear, e, n);

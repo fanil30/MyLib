@@ -1,6 +1,5 @@
 package com.wang.math.encrypt.rsa;
 
-import com.wang.java_util.DebugUtil;
 import com.wang.java_util.MathUtil;
 
 import java.math.BigInteger;
@@ -88,7 +87,7 @@ public class RSAUtil {
             }
         }
 
-        DebugUtil.printlnEntity(testNumberList);
+//        DebugUtil.printlnEntity(testNumberList);
 
         while (true) {
             StringBuilder builder = new StringBuilder();
@@ -100,12 +99,12 @@ public class RSAUtil {
                     builder.append(MathUtil.random(0, 9));
                 }
             }
-            System.out.println(builder.toString());
+//            System.out.println(builder.toString());
             if (isPrime(new BigInteger(builder.toString()), testNumberList)) {
-                System.out.println("is prime\n");
+//                System.out.println("is prime\n");
                 return new BigInteger(builder.toString());
             }
-            System.out.println("not prime\n");
+//            System.out.println("not prime\n");
         }
     }
 
@@ -130,8 +129,6 @@ public class RSAUtil {
      * 将k=25代入（a）式，得d=1019，这个值即我们要求的私钥d的最终值。
      */
     public static BigInteger modReverse(BigInteger e, BigInteger n, boolean returnD) {
-
-        System.out.println(e + " " + n + " " + returnD);
 
         // ed - nk = 1
         BigInteger k = null;

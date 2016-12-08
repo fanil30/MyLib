@@ -7,9 +7,12 @@ import java.io.File;
 
 public class CopyClass {
 
+    public static String androidStudioModuleName = "server";
+    public static String serverName = "ebook";
+
     public static void main(String[] args) throws Exception {
-        String fromPath = "server/build/classes/main/";
-        String toPath = "C:/IDE/apache-tomcat-7.0.67/webapps/ebook/WEB-INF/";
+        String fromPath = androidStudioModuleName + "/build/classes/main/";
+        String toPath = "C:/IDE/apache-tomcat-7.0.67/webapps/" + serverName + "/WEB-INF/";
 
         FileUtil.copyDir(new File(fromPath), new File(toPath));
         FileUtil.deleteDir(new File(toPath, "classes"));

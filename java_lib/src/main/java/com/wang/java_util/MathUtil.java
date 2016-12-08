@@ -16,19 +16,30 @@ public class MathUtil {
      * @return a ^ b % m
      */
     public static BigInteger indexModule(BigInteger a, BigInteger b, BigInteger m) {
-        BigInteger d = new BigInteger("1");
+        BigInteger result = new BigInteger("1");
         // 把b转化为二进制数的字符串表示形式
         String binaryB = BinaryUtil.toBinaryString(b.toByteArray(), "");
         char[] charArrayB = binaryB.toCharArray();
+        boolean meetOne = false;
         for (char c : charArrayB) {
+            if (!meetOne) {//先忽略掉前面无效的0
+                if (c == '0') {
+                    continue;
+                } else {
+                    meetOne = true;
+                }
+            }
 //            d = (d * d) % m;
-            d = d.multiply(d).mod(m);
+            result = result.multiply(result).mod(m);
             if (c == '1') {
 //                d = (d * a) % m;
-                d = d.multiply(a).mod(m);
+                result = result.multiply(a).mod(m);
             }
         }
-        return d;
+
+        DebugUtil.println(a + " ^ " + b + " % " + m + " = " + result);
+
+        return result;
     }
 
     /**
