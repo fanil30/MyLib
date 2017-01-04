@@ -1,37 +1,42 @@
 package com.wang.test;
 
-import com.wang.java_util.GsonUtil;
-import com.wang.demo.file_system.FileContent;
-import com.wang.demo.file_system.FileNode;
+import com.wang.db.v2.ConstraintAnno;
+import com.wang.db.v2.TypeAnno;
+import com.wang.test.shopping_system.bean.Orders;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.sql.SQLException;
 
 public class JavaLibTestClass {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
+        Field[] fields = Orders.class.getDeclaredFields();
+        for (Field field : fields) {
 
-        FileNode seaMusic = new FileNode(new FileContent("sea.mp3", ""), null, false);
-        FileNode topMusic = new FileNode(new FileContent("top.mp3", ""), null, false);
-        List<FileNode> musicList = new ArrayList<>();
-        musicList.add(seaMusic);
-        musicList.add(topMusic);
-        FileNode musicDir = new FileNode(new FileContent("music", ""), musicList, true);
+            System.out.println(field.getName());
 
-        FileNode seaVideo = new FileNode(new FileContent("sea.mp4", ""), null, false);
-        FileNode topVideo = new FileNode(new FileContent("top.mp4", ""), null, false);
-        List<FileNode> videoList = new ArrayList<>();
-        videoList.add(seaVideo);
-        videoList.add(topVideo);
-        FileNode videoDir = new FileNode(new FileContent("video", ""), videoList, true);
+            TypeAnno typeAnno = field.getAnnotation(TypeAnno.class);
+            if (typeAnno != null) {
+                System.out.println("typeAnno: " + typeAnno.type());
+            }
 
-        List<FileNode> mediaList = new ArrayList<>();
-        mediaList.add(musicDir);
-        mediaList.add(videoDir);
-        FileNode mediaDir = new FileNode(new FileContent("media", ""), mediaList, true);
+            ConstraintAnno constraint = field.getAnnotation(ConstraintAnno.class);
+            if (constraint != null) {
+                System.out.println(constraint.constraint());
+                switch (constraint.constraint()) {
+                    case FOREIGN_KEY:
+                        System.out.println("foreignTable: " + constraint.foreignTable());
+                        System.out.println("foreignField: " + constraint.foreignField());
+                        break;
+                    case DEFAULT:
+                        System.out.println("defaultValue: " + constraint.defaultValue());
+                        break;
+                }
+            }
 
-        GsonUtil.printFormatJson(mediaDir);
+            System.out.println("----------------------------------------------");
 
+        }
     }
 
 }

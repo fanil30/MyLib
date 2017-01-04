@@ -48,7 +48,7 @@ public class FileSystemDemo implements TreeSelectionListener {
         JFrame frame = new JFrame("FileSystemDemo");
         frame.setJMenuBar(menuBar);
         frame.add(tree);
-        frame.setSize(400, 600);
+        frame.setSize(600, 800);
         frame.setVisible(true);
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -83,14 +83,14 @@ public class FileSystemDemo implements TreeSelectionListener {
         menuBar.add(menuCreate);
 
 
-        JButton btnUpdate = new JButton("ÐÞ¸Ä");
-        btnUpdate.addActionListener(new ActionListener() {
+        JButton btnRename = new JButton("ÖØÃüÃû");
+        btnRename.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateSelectedFileName();
             }
         });
-        menuBar.add(btnUpdate);
+        menuBar.add(btnRename);
 
 
         JButton btnDelete = new JButton("É¾³ý");

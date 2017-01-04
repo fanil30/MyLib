@@ -7,21 +7,21 @@ import java.io.File;
 
 public class CopyClass {
 
-    public static String androidStudioModuleName = "server";
-    public static String serverName = "ebook";
+    public static String buildClassDir = "Constraint:\\IDE\\android-studio-project\\MyLib\\java_lib\\";
+    public static String serverName = "shopping_system";
 
     public static void main(String[] args) throws Exception {
-        String fromPath = androidStudioModuleName + "/build/classes/main/";
-        String toPath = "C:/IDE/apache-tomcat-7.0.67/webapps/" + serverName + "/WEB-INF/";
+        String fromDir = buildClassDir + "build/classes/main/";
+        String toDir = "Constraint:/IDE/apache-tomcat-7.0.67/webapps/" + serverName + "/WEB-INF/";
 
-        FileUtil.copyDir(new File(fromPath), new File(toPath));
-        FileUtil.deleteDir(new File(toPath, "classes"));
-        new File(toPath, "main").renameTo(new File(toPath, "classes"));
+        FileUtil.copyDir(new File(fromDir), new File(toDir));
+        FileUtil.deleteDir(new File(toDir, "classes"));
+        new File(toDir, "main").renameTo(new File(toDir, "classes"));
 
-        fromPath = "C:\\IDE\\android-studio-project\\MyLib\\java_lib\\build\\libs\\java_lib.jar";
-        toPath = toPath + "lib/java_lib.jar";
-        new File(toPath).delete();
-        FileUtil.copy(fromPath, toPath);
+        fromDir = "Constraint:\\IDE\\android-studio-project\\MyLib\\java_lib\\build\\libs\\java_lib.jar";
+        toDir = toDir + "lib/java_lib.jar";
+        new File(toDir).delete();
+        FileUtil.copy(fromDir, toDir);
 
         System.out.println(DateUtil.getCurrentTime());
         System.out.println("Web update succeed!");

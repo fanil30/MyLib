@@ -1,4 +1,4 @@
-package com.wang.db;
+package com.wang.db.v2;
 
 import com.wang.java_util.TextUtil;
 
@@ -39,7 +39,7 @@ public class SqlUtil {
         StringBuilder sql = new StringBuilder();
         sql.append("create table if not exists ").append(tableName).append("(");
         for (int i = 0; i < tableFields.size(); i++) {
-            com.wang.db.TableField field = tableFields.get(i);
+            TableField field = tableFields.get(i);
             String s = field.name + " " +
                     getType(field.type) +
                     (field.unsigned ? " unsigned" : "") +
@@ -68,8 +68,7 @@ public class SqlUtil {
     }
 
     public static String dropTableColumnSql(String tableName, String columnName) {
-        String sql = "alter table " + tableName + " drop " + columnName + ";";
-        return sql;
+        return "alter table " + tableName + " drop " + columnName + ";";
     }
 
     public static String setAutoIncrementNumberSql(String tableName, int number) {
@@ -95,16 +94,28 @@ public class SqlUtil {
 
             nameList += tv.name + (i < tableValues.size() - 1 ? "," : ")");
 
-            if (tv.type == TableValue.TEXT) {
-                //一定要进行特殊字符'和\的转义，否则sql语法出错！！！
-                valueList += "'" + toCorrectValue((String) tv.value) + "'";
-            } else if (tv.type == TableValue.INT) {
-                valueList += Integer.parseInt(tv.value + "");
-            } else if (tv.type == TableValue.DOUBLE) {
-                valueList += Double.parseDouble(tv.value + "");
+            switch (tv.type) {
+                case TINYINT:
+                case INT:
+                    valueList += Integer.parseInt(tv.value + "");
+                    break;
+                case DOUBLE:
+                    valueList += Double.parseDouble(tv.value + "");
+                    break;
+                case VARCHAR_10:
+                case VARCHAR_20:
+                case VARCHAR_50:
+                case VARCHAR_100:
+                case VARCHAR_500:
+                case TEXT:
+                    //一定要进行特殊字符'和\的转义，否则sql语法出错！！！
+                    valueList += "'" + toCorrectValue(tv.value) + "'";
+                    break;
+                case EXTRA:
+                    break;
             }
-            valueList += i < tableValues.size() - 1 ? "," : ")";
 
+            valueList += i < tableValues.size() - 1 ? "," : ")";
         }
 
         sql.append(nameList).append(" ").append(valueList).append(";");
@@ -122,7 +133,7 @@ public class SqlUtil {
     /**
      * 生成删除语句 - 具体实现
      */
-    public static String deleteSql(String tableName, ArrayList<TableValue> wheres) {
+    public static String deleteSql(String tableName, List<TableValue> wheres) {
         String sql = "delete from " + tableName;
         if (wheres == null || wheres.size() == 0) {
             return sql + ";";
@@ -138,7 +149,7 @@ public class SqlUtil {
      * 生成删除语句 - 接口实现
      */
     public static String deleteSql(String tableName, TableValue where) {
-        ArrayList<TableValue> wheres = new ArrayList<>();
+        List<TableValue> wheres = new ArrayList<>();
         wheres.add(where);
         return deleteSql(tableName, wheres);
     }
@@ -146,8 +157,8 @@ public class SqlUtil {
     /**
      * 生成更新语句 - 具体实现
      */
-    public static String updateSql(String tableName, ArrayList<TableValue> setValues,
-                                   ArrayList<TableValue> wheres) {
+    public static String updateSql(String tableName, List<TableValue> setValues,
+                                   List<TableValue> wheres) {
         String sql = "update " + tableName + " set ";
         sql += getExpressionList(setValues, ",");
         sql += " where " + getExpressionList(wheres, " and ") + ";";
@@ -158,8 +169,8 @@ public class SqlUtil {
      * 生成更新语句 - 接口实现1
      */
     public static String updateSql(String tableName, TableValue setValue,
-                                   ArrayList<TableValue> wheres) {
-        ArrayList<TableValue> setValues = new ArrayList<>();
+                                   List<TableValue> wheres) {
+        List<TableValue> setValues = new ArrayList<>();
         setValues.add(setValue);
         return updateSql(tableName, setValues, wheres);
     }
@@ -167,9 +178,9 @@ public class SqlUtil {
     /**
      * 生成更新语句 - 接口实现2
      */
-    public static String updateSql(String tableName, ArrayList<TableValue> setValues,
+    public static String updateSql(String tableName, List<TableValue> setValues,
                                    TableValue where) {
-        ArrayList<TableValue> wheres = new ArrayList<>();
+        List<TableValue> wheres = new ArrayList<>();
         wheres.add(where);
         return updateSql(tableName, setValues, wheres);
     }
@@ -178,9 +189,9 @@ public class SqlUtil {
      * 生成更新语句 - 接口实现3
      */
     public static String updateSql(String tableName, TableValue setValue, TableValue where) {
-        ArrayList<TableValue> wheres = new ArrayList<>();
+        List<TableValue> wheres = new ArrayList<>();
         wheres.add(where);
-        ArrayList<TableValue> setValues = new ArrayList<>();
+        List<TableValue> setValues = new ArrayList<>();
         setValues.add(setValue);
         return updateSql(tableName, setValues, wheres);
     }
@@ -192,7 +203,7 @@ public class SqlUtil {
      * @param orderBy   根据该字段对结果排序，若为空或长度为0，则参数orderDesc无效，默认排序
      * @param orderDesc 是否倒序排列结果
      */
-    public static String querySql(String tableName, ArrayList<TableValue> wheres,
+    public static String querySql(String tableName, List<TableValue> wheres,
                                   String orderBy, boolean orderDesc) {
         String sql = "select * from " + tableName;
         if (wheres != null && wheres.size() != 0) {
@@ -214,7 +225,7 @@ public class SqlUtil {
      */
     public static String querySql(String tableName, TableValue where,
                                   String orderBy, boolean orderDesc) {
-        ArrayList<TableValue> wheres = new ArrayList<>();
+        List<TableValue> wheres = new ArrayList<>();
         wheres.add(where);
         return querySql(tableName, wheres, orderBy, orderDesc);
     }
@@ -242,19 +253,30 @@ public class SqlUtil {
      * @param separator 表达式之间的分隔符。常见的有" and "(where条件语句) 和 ","（update赋值语句）
      * @return 如 "name='wang',date='2015-03-11',sex=1" 或 "group_id=4 and date='2015-06-12'"
      */
-    private static String getExpressionList(ArrayList<TableValue> tableValues, String separator) {
+    private static String getExpressionList(List<TableValue> tableValues, String separator) {
         String expressionList = "";
         for (int i = 0; i < tableValues.size(); i++) {
             TableValue tv = tableValues.get(i);
             String value = "";
-            if (tv.type == TableValue.TEXT) {
-                value += "'" + tv.value + "'";
-            } else if (tv.type == TableValue.INT) {
-                value += Integer.parseInt(tv.value + "");
-            } else if (tv.type == TableValue.DOUBLE) {
-                value += Double.parseDouble(tv.value + "");
+            switch (tv.type) {
+                case TINYINT:
+                case INT:
+                    value += Integer.parseInt(tv.value + "");
+                    break;
+                case DOUBLE:
+                    value += Double.parseDouble(tv.value + "");
+                    break;
+                case VARCHAR_10:
+                case VARCHAR_20:
+                case VARCHAR_50:
+                case VARCHAR_100:
+                case VARCHAR_500:
+                case TEXT:
+                    value += "'" + tv.value + "'";
+                    break;
+                case EXTRA:
+                    break;
             }
-
             expressionList += tv.name + "=" + value + (i < tableValues.size() - 1 ? separator : "");
         }
 
@@ -264,7 +286,7 @@ public class SqlUtil {
     /**
      * @param after 空则插在第一位，否则名为after的列的后面
      */
-    public static String addTableColumn(String tableName, com.wang.db.TableField field, String after) {
+    public static String addTableColumn(String tableName, TableField field, String after) {
         String sql = "alter table " + tableName + " add ";
         sql += field.name + " " +
                 getType(field.type) +
@@ -292,41 +314,45 @@ public class SqlUtil {
         return value;
     }
 
-    private static String getType(int type) {
+    private static String getType(Type type) {
         String strType = "";
         switch (type) {
-            case com.wang.db.TableField.TYPE_TINYINT:
+            case TINYINT:
                 strType = "tinyint";
                 break;
-            case com.wang.db.TableField.TYPE_INT:
+            case INT:
                 if (dbType == TYPE_MYSQL) {
                     strType = "int";
                 } else if (dbType == TYPE_SQLITE) {
                     strType = "integer";
                 }
                 break;
-            case com.wang.db.TableField.TYPE_DOUBLE:
+            case DOUBLE:
                 if (dbType == TYPE_MYSQL) {
                     strType = "double";
                 } else if (dbType == TYPE_SQLITE) {
                     strType = "real";
                 }
                 break;
-            case com.wang.db.TableField.TYPE_VARCHAR_20:
+            case VARCHAR_10:
+                strType = "varchar(10)";
+                break;
+            case VARCHAR_20:
                 strType = "varchar(20)";
                 break;
-            case com.wang.db.TableField.TYPE_VARCHAR_40:
-                strType = "varchar(40)";
+            case VARCHAR_50:
+                strType = "varchar(50)";
                 break;
-            case com.wang.db.TableField.TYPE_VARCHAR_200:
-                strType = "varchar(200)";
+            case VARCHAR_100:
+                strType = "varchar(100)";
                 break;
-            case com.wang.db.TableField.TYPE_TEXT:
+            case VARCHAR_500:
+                strType = "varchar(500)";
+                break;
+            case TEXT:
                 strType = "text";
                 break;
-
         }
-
         return strType;
     }
 

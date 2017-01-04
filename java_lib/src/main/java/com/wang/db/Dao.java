@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 拥有已经实现好的万能增删查改等方法的类
@@ -54,6 +55,7 @@ public class Dao {
         }
 
         String sql = SqlUtil.createTableSql(entityClass.getSimpleName(), tableFields);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.execute();
@@ -78,6 +80,7 @@ public class Dao {
         fields = filterStaticField(fields);
 
         String sql = SqlUtil.querySql(entityClass.getSimpleName(), new ArrayList<TableValue>(), null, false);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
@@ -121,6 +124,7 @@ public class Dao {
 
         TableValue where = new TableValue(fields[0].getName(), TableValue.INT, id);
         String sql = SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
@@ -182,6 +186,7 @@ public class Dao {
         } else {
             sql = SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
         }
+        printSql(sql);
 
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -259,6 +264,7 @@ public class Dao {
         }
 
         String sql = SqlUtil.insertSql(entity.getClass().getSimpleName(), values);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
 
         if (dbHelper.type == DbHelper.TYPE_SQLITE) {
@@ -323,6 +329,7 @@ public class Dao {
         }
 
         String sql = SqlUtil.updateSql(entity.getClass().getSimpleName(), setValues, where);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
@@ -350,6 +357,7 @@ public class Dao {
         TableValue setValue = new TableValue(name, type, value);
 
         String sql = SqlUtil.updateSql(entityClass.getSimpleName(), setValue, where);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
@@ -365,6 +373,7 @@ public class Dao {
         TableValue where = new TableValue(idField.getName(), TableValue.INT, id);
 
         String sql = SqlUtil.deleteSql(entityClass.getSimpleName(), where);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
@@ -386,6 +395,7 @@ public class Dao {
 
         TableValue where = new TableValue(whereName, type, whereValue);
         String sql = SqlUtil.deleteSql(entityClass.getSimpleName(), where);
+        printSql(sql);
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
@@ -394,7 +404,7 @@ public class Dao {
 
     }
 
-    protected <T> ArrayList<T> getResult(Class<T> entityClass, ResultSet rs) {
+    protected <T> List<T> getResult(Class<T> entityClass, ResultSet rs) {
         ArrayList<T> entityList = new ArrayList<>();
         Field[] fields = entityClass.getDeclaredFields();
         fields = filterStaticField(fields);
@@ -433,4 +443,9 @@ public class Dao {
 
     }
 
+    private void printSql(String sql) {
+        System.out.println(sql);
+        System.out.println();
+    }
+    
 }
