@@ -10,9 +10,7 @@ import java.util.List;
  */
 public class SqlUtil {
 
-    public static final int TYPE_MYSQL = 1;
-    public static final int TYPE_SQLITE = 2;
-    public static int dbType = TYPE_MYSQL;
+    public static DbType dbType = DbType.MYSQL;
 
     public static String[] setCharsetSql(String charsetName) {
         String[] sqls = new String[5];
@@ -37,7 +35,7 @@ public class SqlUtil {
      */
     public static String createTableSql(String tableName, List<TableField> tableFields) {
         StringBuilder sql = new StringBuilder();
-        sql.append("create table if not exists ").append(tableName).append("(");
+        sql.append("create table if not exists ").append(tableName).append("(\n");
         for (int i = 0; i < tableFields.size(); i++) {
             TableField field = tableFields.get(i);
             String s = field.name + " " +
@@ -47,14 +45,14 @@ public class SqlUtil {
                     ((!field.primaryKey && field.notNull) ? " not null" : "") +
                     ((!field.primaryKey && field.unique) ? " unique key" : "") +
                     (field.defaultValue != null ? " default " + field.defaultValue.value : "") +
-                    (i < tableFields.size() - 1 ? ",\n" : ")");
+                    (i < tableFields.size() - 1 ? ",\n" : "\n) ");
             sql.append(s);
         }
 
-        if (dbType == TYPE_MYSQL) {
+        if (dbType == DbType.MYSQL) {
             sql.append("default charset=utf8;");
             return sql.toString();
-        } else if (dbType == TYPE_SQLITE) {
+        } else if (dbType == DbType.SQLITE) {
             sql.append(";");
             return sql.toString().replace("auto_increment", "autoincrement");
         } else {
@@ -75,10 +73,60 @@ public class SqlUtil {
         return "alter table " + tableName + " auto_increment=" + number + ";";
     }
 
-    public static String foreignKeySql(String mainTableName, String mainFieldName,
-                                       String referenceTableName, String referenceFieldName) {
-        return "alter table " + mainTableName + "  add foreign key (" + mainFieldName + ") " +
-                "references by " + referenceTableName + "(" + referenceFieldName + ");";
+    public static String getLatestAutoIncrementNumberSql(String tableName, String primaryKeyName) {
+        //第一种方法：select last_insert_rowid()，暂时不知执行sql后怎么在Cursor中获取结果。
+        //第二种方法：select max(ID) from 表名
+        return "select max(" + primaryKeyName + ") from " + tableName + ";";
+    }
+
+    public static String foreignKeySql(String mainTableName,
+                                       String mainFieldName,
+                                       String referenceTableName,
+                                       String referenceFieldName,
+                                       Action onDeleteAction,
+                                       Action onUpdateAction) {
+
+//        String sss = "ALTER TABLE `orders` ADD FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) " +
+//                "ON DELETE CASCADE ON UPDATE SET NULL;";
+        String sql = "alter table " + mainTableName + " add foreign key (" + mainFieldName + ") " +
+                "references " + referenceTableName + "(" + referenceFieldName + ") ";
+
+        String onDeleteActionSql = "";
+        String onUpdateActionSql = "";
+
+        switch (onDeleteAction) {
+            case NO_ACTION:
+                onDeleteActionSql = "on delete no action";
+                break;
+            case SET_NULL:
+                onDeleteActionSql = "on delete set null";
+                break;
+            case CASCADE:
+                onDeleteActionSql = "on delete cascade";
+                break;
+        }
+
+        switch (onUpdateAction) {
+            case NO_ACTION:
+                onUpdateActionSql = "on update no action";
+                break;
+            case SET_NULL:
+                onUpdateActionSql = "on update set null";
+                break;
+            case CASCADE:
+                onUpdateActionSql = "on update cascade";
+                break;
+        }
+
+        if (!TextUtil.isEmpty(onDeleteActionSql)) {
+            sql += onDeleteActionSql + " ";
+        }
+        if (!TextUtil.isEmpty(onUpdateActionSql)) {
+            sql += onUpdateActionSql + " ";
+        }
+
+        sql += ";";
+        return sql;
     }
 
     /**
@@ -120,9 +168,9 @@ public class SqlUtil {
 
         sql.append(nameList).append(" ").append(valueList).append(";");
 
-        if (dbType == TYPE_MYSQL) {
+        if (dbType == DbType.MYSQL) {
             return sql.toString();
-        } else if (dbType == TYPE_SQLITE) {
+        } else if (dbType == DbType.SQLITE) {
             return sql.toString().replace("insert", "insert into");
         } else {
             return "";
@@ -321,16 +369,16 @@ public class SqlUtil {
                 strType = "tinyint";
                 break;
             case INT:
-                if (dbType == TYPE_MYSQL) {
+                if (dbType == DbType.MYSQL) {
                     strType = "int";
-                } else if (dbType == TYPE_SQLITE) {
+                } else if (dbType == DbType.SQLITE) {
                     strType = "integer";
                 }
                 break;
             case DOUBLE:
-                if (dbType == TYPE_MYSQL) {
+                if (dbType == DbType.MYSQL) {
                     strType = "double";
-                } else if (dbType == TYPE_SQLITE) {
+                } else if (dbType == DbType.SQLITE) {
                     strType = "real";
                 }
                 break;

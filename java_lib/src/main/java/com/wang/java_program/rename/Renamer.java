@@ -4,6 +4,7 @@ import com.wang.java_util.TextUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * by 王荣俊 on 2016/7/26.
@@ -16,25 +17,27 @@ public class Renamer {
     private String dir;
     private String renameText;
     private int mode;
-    private boolean ignoreFileSuffix;
-    private String prefix;
-    private String suffix;
+    private boolean ignoreFileSuffix;//是否忽略文件名后缀
+    private String prefix;//前缀
+    private String suffix;//后缀
+    private String incrementBegin;
 
     private static final String INCREMENT_SIGN = "[auto_increment]";
 
-    private ArrayList<RenameFile> renameFiles;
+    private List<RenameFile> renameFiles;
 
     /**
      * 注意：包含格式如[auto_increment]的字符串，会自动替换为自增的数字如01,02,03...
      */
     public Renamer(String dir, String renameText, int mode, boolean ignoreFileSuffix,
-                   String prefix, String suffix) {
+                   String prefix, String suffix, String incrementBegin) {
         this.dir = dir;
         this.renameText = renameText;
         this.mode = mode;
         this.ignoreFileSuffix = ignoreFileSuffix;
         this.prefix = prefix;
         this.suffix = suffix;
+        this.incrementBegin = incrementBegin;
     }
 
     public String prepare() throws Exception {
@@ -50,8 +53,8 @@ public class Renamer {
         for (int i = 0; i < lines.length && i < files.length; i++) {
             String oldName = files[i].getName();
             String newName = getNewName(oldName, lines[i]);
-            String index = (i + 1) + "";
-            newName = newName.replace(INCREMENT_SIGN, (i < 9 ? "0" : "") + index);
+            newName = newName.replace(INCREMENT_SIGN, getIncrementString(i));//把递增匹配符转化为递增数字
+            newName = TextUtil.correctFileName(newName, "");//去除非法符号
             RenameFile renameFile = new RenameFile(files[i], newName);
             renameFiles.add(renameFile);
 
@@ -59,6 +62,19 @@ public class Renamer {
         }
 
         return builder.toString();
+    }
+
+    /**
+     * 比如incrementBegin = "004" ，那么index=0时，返回004，index=1时，返回005。以此类推。
+     */
+    private String getIncrementString(int index) throws Exception {
+        int begin = Integer.parseInt(incrementBegin);
+        int n = incrementBegin.length();
+        String incrementString = (begin + index) + "";
+        while (incrementString.length() < n) {
+            incrementString = "0" + incrementString;
+        }
+        return incrementString;
     }
 
     /**

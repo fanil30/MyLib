@@ -118,5 +118,5 @@ public class DateUtil {
         calendar.set(Calendar.SECOND, second);
         return calendar.getTimeInMillis();
     }
-
+    
 }

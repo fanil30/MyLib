@@ -5,4 +5,6 @@ package com.wang.java_program.rename;
  */
 public class Config {
     public static String defaultDir = "E:/";
+    public static String defaultPrefix = " - [auto_increment] - ";
+    public static String defaultIncrementBegin = "01";
 }

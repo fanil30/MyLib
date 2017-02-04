@@ -46,8 +46,9 @@ public class RenameWindow extends JFrame implements ActionListener {
     JButton btnPreview = new JButton("预览");
     JButton btnPerform = new JButton("执行");
     JComboBox cbMode = new JComboBox<>(new Object[]{"替换", "追加前后缀"});
-    JTextField tfPrefix = new JTextField();
+    JTextField tfPrefix = new JTextField(Config.defaultPrefix);
     JTextField tfSuffix = new JTextField();
+    JTextField tfIncrementBegin = new JTextField(Config.defaultIncrementBegin);
     JCheckBox cbIgnoreFileSuffix = new JCheckBox("不修改文件后缀名");
 
     final JTextArea taRenameText = new JTextArea();
@@ -105,8 +106,7 @@ public class RenameWindow extends JFrame implements ActionListener {
         JLabel labelMode = new JLabel("重命名模式", JLabel.RIGHT);
         JLabel labelPrefix = new JLabel("前缀", JLabel.RIGHT);
         JLabel labelSuffix = new JLabel("后缀", JLabel.RIGHT);
-        JTextField tfIncrement = new JTextField("插入匹配符，使用递增数字：[auto_increment]");
-        tfIncrement.setEditable(false);
+        JLabel labelIncrement = new JLabel("递增数字匹配符[auto_increment]，起始位置及格式：");
 
         btnChooseDir.setBounds(0, 0, 90, 30);
         tfDir.setBounds(100, 0, 400, 30);
@@ -122,7 +122,8 @@ public class RenameWindow extends JFrame implements ActionListener {
         tfPrefix.setBounds(430, 40, 150, 30);
         labelSuffix.setBounds(590, 40, 60, 30);
         tfSuffix.setBounds(660, 40, 150, 30);
-        tfIncrement.setBounds(0, 80, 400, 20);
+        labelIncrement.setBounds(0, 80, 400, 30);
+        tfIncrementBegin.setBounds(320, 80, 70, 30);
 
         topPanel.add(btnChooseDir);
         topPanel.add(tfDir);
@@ -136,7 +137,8 @@ public class RenameWindow extends JFrame implements ActionListener {
         topPanel.add(labelSuffix);
         topPanel.add(tfSuffix);
         topPanel.add(cbIgnoreFileSuffix);
-        topPanel.add(tfIncrement);
+        topPanel.add(labelIncrement);
+        topPanel.add(tfIncrementBegin);
 
         cbMode.addActionListener(this);
         btnChooseDir.addActionListener(this);
@@ -146,7 +148,7 @@ public class RenameWindow extends JFrame implements ActionListener {
         JPanel tmpPanel = new JPanel();
         tmpPanel.add(topPanel, "Center");
 
-        topPanel.setPreferredSize(new Dimension(810, 100));
+        topPanel.setPreferredSize(new Dimension(810, 120));
         add(tmpPanel, "North");
     }
 
@@ -165,6 +167,9 @@ public class RenameWindow extends JFrame implements ActionListener {
         }
     }
 
+    /**
+     * 预览
+     */
     private void perform() {
         btnPerform.setEnabled(false);
         if (renamer != null) {
@@ -178,14 +183,19 @@ public class RenameWindow extends JFrame implements ActionListener {
         }
     }
 
+    /**
+     * 执行命名
+     */
     private void preview() {
         String dir = tfDir.getText();
         String renameText = taRenameText.getText();
         boolean ignoreFileSuffix = cbIgnoreFileSuffix.isSelected();
         String prefix = tfPrefix.getText();
         String suffix = tfSuffix.getText();
+        String incrementBegin = tfIncrementBegin.getText();
         if (!TextUtil.isEmpty(dir) && (!TextUtil.isEmpty(dir) || (mode != Renamer.MODE_REPLACE))) {
-            renamer = new Renamer(dir, renameText, mode, ignoreFileSuffix, prefix, suffix);
+            renamer = new Renamer(
+                    dir, renameText, mode, ignoreFileSuffix, prefix, suffix, incrementBegin);
             try {
                 String preview = renamer.prepare();
                 taPreview.setText(preview);

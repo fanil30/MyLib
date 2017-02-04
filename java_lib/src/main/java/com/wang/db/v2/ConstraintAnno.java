@@ -17,6 +17,8 @@ public @interface ConstraintAnno {
 
     String foreignField() default "0";
 
-    Action action() default Action.RESTRICT;
+    Action onDeleteAction() default Action.NO_ACTION;
+
+    Action onUpdateAction() default Action.NO_ACTION;
 
 }

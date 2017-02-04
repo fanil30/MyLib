@@ -46,7 +46,7 @@ public class DebugUtil {
      *              若设置为1，则显示fun2及其所在位置。
      *              若设置为2，则显示fun1及其所在位置。
      */
-    private static String getDebugMessage(String message, int depth) {
+    public static String getDebugMessage(String message, int depth) {
 
         String className = "UnKnowClass";
         String methodName = "unKnowMethod";
