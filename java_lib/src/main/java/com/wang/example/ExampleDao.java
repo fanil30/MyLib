@@ -1,7 +1,7 @@
 package com.wang.example;
 
 import com.wang.db.Dao;
-import com.wang.db.DbHelper;
+import com.wang.db.connection.DbcpDbHelper;
 import com.wang.web.Cookie;
 
 import java.sql.SQLException;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class ExampleDao extends Dao {
 
     static {
-        Dao dao = new Dao(new DbHelper("root", "21436587", "ebook"));
+        Dao dao = new Dao(new DbcpDbHelper("root", "21436587", "ebook"));
         try {
 //            dao.createTable(Book.class);
 //            dao.createTable(User.class);
@@ -25,7 +25,7 @@ public class ExampleDao extends Dao {
     }
 
     public ExampleDao() {
-        super(new DbHelper("root", "21436587", "ebook"));
+        super(new DbcpDbHelper("root", "21436587", "ebook"));
     }
 
 }

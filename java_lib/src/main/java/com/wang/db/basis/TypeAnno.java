@@ -1,4 +1,4 @@
-package com.wang.db.v2;
+package com.wang.db.basis;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

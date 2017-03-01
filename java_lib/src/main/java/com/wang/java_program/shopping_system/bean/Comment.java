@@ -1,9 +1,9 @@
 package com.wang.java_program.shopping_system.bean;
 
-import com.wang.db.v2.Constraint;
-import com.wang.db.v2.ConstraintAnno;
-import com.wang.db.v2.Type;
-import com.wang.db.v2.TypeAnno;
+import com.wang.db.basis.Constraint;
+import com.wang.db.basis.ConstraintAnno;
+import com.wang.db.basis.Type;
+import com.wang.db.basis.TypeAnno;
 
 /**
  * by wangrongjun on 2016/12/15.

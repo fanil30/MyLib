@@ -200,4 +200,74 @@ public class TextUtil {
         return year + "-" + m + "-" + d;
     }
 
+    /**
+     * toUpperCaseStyle和toLowerCaseStyle的测试方法
+     */
+    public static void testToUpperCaseStyleAndToLowerCaseStyle() {
+        String test[] = new String[]{
+                "t_o_menu_option",
+                "t_open_menu_option_",
+                "_t_open_menu_n",
+                "_t_open_menu_n_",
+                "_t_open_u_option_",
+                "_t_open_u_option__",
+                "_t_open_u_option_",
+                "_t_o_u_op_t_ion_",
+        };
+        for (String s : test) {
+            String upperCase = toUpperCaseStyle(s);
+            String lowerCase = toLowerCaseStyle(upperCase);
+            System.out.println(s + " -> " + upperCase + " -> " + lowerCase + "\n" +
+                    lowerCase.equals(s) + "\n");
+        }
+    }
+
+    /**
+     * 把首字母下划线小写风格转换成首字母大写风格
+     * 实现细节：找到所有符合“第一个为下划线，第二个为小写字母”的子字符串进行转换。
+     *
+     * @param lowerCase 首字母下划线小写风格的字符串，如“tv_open_menu_option”
+     * @return 首字母大写风格的字符串，如“tvOpenMenuOption”
+     */
+    public static String toUpperCaseStyle(String lowerCase) {
+        String result = "";
+        char[] lowerLetterList = lowerCase.toCharArray();
+        for (int i = 0; i < lowerLetterList.length; i++) {
+            char c = lowerLetterList[i];
+            if (c == '_' && i < lowerLetterList.length - 1) {//如果当前字符是下划线并且不是最后一个字符
+                char nextChar = lowerLetterList[i + 1];
+                if ((lowerLetterList[i + 1] + "").matches("[a-z]")) {//如果下一个字符为小写字母
+                    result += (nextChar + "").toUpperCase();//把下一个字符转成大写字母并加到result
+                    i++;//跳过下一个字符（这个字符就是小写字母）
+                } else {
+                    result += c;
+                }
+            } else {
+                result += c;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 把首字母大写风格转换成首字母下划线小写风格
+     * 实现细节：找到所有符合“大写字母”的字符进行转换。
+     *
+     * @param upperCase 首字母大写风格的字符串，如“tvOpenMenuOption”
+     * @return 首字母下划线小写风格的字符串，如“tv_open_menu_option”
+     */
+    public static String toLowerCaseStyle(String upperCase) {
+        String result = "";
+        char[] upperLetterList = upperCase.toCharArray();
+        for (int i = 0; i < upperLetterList.length; i++) {
+            char c = upperLetterList[i];
+            if ((c + "").matches("[A-Z]")) {//如果当前字符为大写字母
+                result += "_" + (c + "").toLowerCase();//转成大写字母并在前面添加下划线，加到result
+            } else {
+                result += c;
+            }
+        }
+        return result;
+    }
+
 }

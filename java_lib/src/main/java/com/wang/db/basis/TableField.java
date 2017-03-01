@@ -1,4 +1,4 @@
-package com.wang.db.v2;
+package com.wang.db.basis;
 
 /**
  * 建表的字段

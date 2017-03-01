@@ -1,7 +1,7 @@
 package com.wang.java_program.shopping_system.dao;
 
-import com.wang.db.v2.DbHelper;
-import com.wang.db.v2.Dao;
+import com.wang.db.connection.DbcpDbHelper;
+import com.wang.db.Dao;
 import com.wang.java_program.shopping_system.bean.GoodImage;
 
 import java.sql.SQLException;
@@ -12,7 +12,7 @@ import java.sql.SQLException;
 public class CustomDao extends Dao {
 
     static {
-        DbHelper helper = new DbHelper("root", "21436587", "shopping_system");
+        DbcpDbHelper helper = new DbcpDbHelper("root", "21436587", "shopping_system");
         Dao dao = new Dao(helper);
         try {
 
@@ -41,7 +41,7 @@ public class CustomDao extends Dao {
     }
 
     public CustomDao() {
-        super(new DbHelper("root", "21436587", "shopping_system"));
+        super(new DbcpDbHelper("root", "21436587", "shopping_system"));
     }
 
 }

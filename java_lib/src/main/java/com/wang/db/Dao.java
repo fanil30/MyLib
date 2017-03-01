@@ -1,7 +1,10 @@
 package com.wang.db;
 
+import com.wang.db.basis.DbType;
+import com.wang.java_util.DebugUtil;
+import com.wang.db.connection.DbHelper;
+
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,14 +19,12 @@ import java.util.List;
 public class Dao {
 
     protected DbHelper dbHelper;
+    protected boolean printSql = false;
 
     public Dao(DbHelper dbHelper) {
         this.dbHelper = dbHelper;
-        if (dbHelper.type == DbHelper.TYPE_MYSQL) {
-            SqlUtil.dbType = SqlUtil.TYPE_MYSQL;
-        } else if (dbHelper.type == DbHelper.TYPE_SQLITE) {
-            SqlUtil.dbType = SqlUtil.TYPE_SQLITE;
-        }
+        SqlUtil.dbType = dbHelper.getDbType();
+        SqlEntityUtil.dbType = dbHelper.getDbType();
     }
 
     /**
@@ -37,73 +38,23 @@ public class Dao {
      * 2.创建的数据表名将会与entity类名相同。
      * <p/>
      * 3.创建的数据表所有字段将会与entity类对应成员变量名相同。
-     * <p/>
-     * 4.entity类第一个成员变量应该为整型，将会作为自增主键。
      */
-    public <T> void createTable(Class<T> entityClass) throws SQLException {
-        ArrayList<TableField> tableFields = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
-        fields = filterStaticField(fields);
-
-        for (int i = 0; i < fields.length; i++) {
-            if (i == 0) {
-                tableFields.add(new TableField(fields[0].getName(), TableField.TYPE_INT).primaryKey());
-            } else {
-                int type = TableField.getTypeFromClassName(fields[i].getType().getSimpleName());
-                tableFields.add(new TableField(fields[i].getName(), type));
-            }
-        }
-
-        String sql = SqlUtil.createTableSql(entityClass.getSimpleName(), tableFields);
-        printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.execute();
-        dbHelper.close(conn, ps);
-
+    public void createTable(Class entityClass) throws SQLException {
+        String createTableSql = SqlEntityUtil.createTableSql(entityClass);
+        printSql(createTableSql);
+        execute(createTableSql);
     }
 
     /**
-     * 查询表中所有entity
-     * <p/>
-     * 使用前提：
-     * <p/>
-     * 1.已配置好dbHelper。
-     * <p/>
-     * 2.数据表名与entity类名相同。
-     * <p/>
-     * 3.数据表所有字段与entity类对应成员变量名相同。
+     * 创建某个表的外键（最好先创建好所有表）
      */
-    public <T> ArrayList<T> queryAll(Class<T> entityClass) throws SQLException {
-        ArrayList<T> arrayList = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
-        fields = filterStaticField(fields);
-
-        String sql = SqlUtil.querySql(entityClass.getSimpleName(), new ArrayList<TableValue>(), null, false);
-        printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-
-        try {
-            while (rs.next()) {
-                T entity = entityClass.newInstance();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    field.set(entity, rs.getObject(field.getName()));
-                }
-                arrayList.add(entity);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            dbHelper.close(conn, ps, rs);
+    public void createReferences(Class entityClass) throws SQLException {
+        List<String> referenceSqlList = SqlEntityUtil.createReferenceSqlList(entityClass);
+        for (String sql : referenceSqlList) {
+            printSql(sql);
+            execute(sql);
         }
-
-        return arrayList;
     }
-
 
     /**
      * 根据主键查询表中的一个entity
@@ -115,38 +66,21 @@ public class Dao {
      * 2.数据表名与entity类名相同。
      * <p/>
      * 3.数据表所有字段与entity类对应成员变量名相同。
-     * <p/>
-     * 4.entity类第一个成员变量作为自增主键。
      */
-    public <T> T queryById(Class<T> entityClass, int id) throws SQLException {
-        Field[] fields = entityClass.getDeclaredFields();
-        fields = filterStaticField(fields);
+    public <T> T queryById(Class<T> entityClass, String id) throws SQLException {
 
-        TableValue where = new TableValue(fields[0].getName(), TableValue.INT, id);
-        String sql = SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
+        String sql = SqlEntityUtil.queryByIdSql(entityClass, id);
         printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-
-        T entity = null;
-        try {
-            if (rs.next()) {
-                entity = entityClass.newInstance();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    field.set(entity, rs.getObject(field.getName()));
-                }
+        List<T> entityList = executeQuery(entityClass, sql);
+        if (entityList.size() == 0) {
+            try {
+                return entityClass.newInstance();
+            } catch (Exception e) {
+                throw new SQLException(e.toString());
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        } finally {
-            dbHelper.close(conn, ps, rs);
+        } else {
+            return entityList.get(0);
         }
-
-        return entity;
     }
 
     /**
@@ -164,56 +98,28 @@ public class Dao {
      * @param whereValue 查询条件的字段值，可以为整型，浮点型，字符串等
      * @param fuzzy      是否进行模糊查询
      */
-    public <T> ArrayList<T> query(Class<T> entityClass, String whereName, Object whereValue, boolean fuzzy)
+    public <T> List<T> query(Class<T> entityClass, String whereName, String whereValue, boolean fuzzy)
             throws SQLException {
-
-        String typeName;
-        try {
-            typeName = entityClass.getDeclaredField(whereName).getType().getSimpleName();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            throw new SQLException(e.toString());
-        }
-        int whereType = TableValue.getTypeFromClassName(typeName);
-        ArrayList<T> arrayList = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
-        fields = filterStaticField(fields);
-        TableValue where = new TableValue(whereName, whereType, whereValue);
-
-        String sql;
-        if (fuzzy) {
-            sql = SqlUtil.queryFuzzySql(entityClass.getSimpleName(), where, null, false);
-        } else {
-            sql = SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
-        }
+        String sql = SqlEntityUtil.querySql(entityClass, whereName, whereValue, fuzzy);
         printSql(sql);
+        return executeQuery(entityClass, sql);
+    }
 
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-            T entity;
-            try {
-                entity = entityClass.newInstance();
-            } catch (Exception e) {
-                throw new SQLException(e.toString());
-            }
-            for (Field field : fields) {
-                field.setAccessible(true);
-                Object object = rs.getObject(field.getName());
-                try {
-                    field.set(entity, object);
-                } catch (IllegalAccessException e) {
-                    throw new SQLException(e.toString());
-                }
-            }
-            arrayList.add(entity);
-        }
-
-        dbHelper.close(conn, ps, rs);
-        return arrayList;
-
+    /**
+     * 查询表中所有entity
+     * <p/>
+     * 使用前提：
+     * <p/>
+     * 1.已配置好dbHelper。
+     * <p/>
+     * 2.数据表名与entity类名相同。
+     * <p/>
+     * 3.数据表所有字段与entity类对应成员变量名相同。
+     */
+    public <T> List<T> queryAll(Class<T> entityClass) throws SQLException {
+        String sql = SqlEntityUtil.queryAllSql(entityClass);
+        printSql(sql);
+        return executeQuery(entityClass, sql);
     }
 
     /**
@@ -232,45 +138,17 @@ public class Dao {
      * @return 返回插入后自增的主键id
      */
     public synchronized int insert(Object entity) throws SQLException {
-        Field[] fields = entity.getClass().getDeclaredFields();
-        fields = filterStaticField(fields);
-        ArrayList<TableValue> values = new ArrayList<>();
 
-        for (int i = 0; i < fields.length; i++) {
-            if (i == 0) {
-                continue;
-            }
-            String type = fields[i].getType().getSimpleName();
-            fields[i].setAccessible(true);
-            Object value = "";
-            try {
-                value = fields[i].get(entity);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-            switch (type) {
-                case "int":
-                    values.add(new TableValue(fields[i].getName(), TableValue.INT, value));
-                    break;
-                case "double":
-                case "float":
-                    values.add(new TableValue(fields[i].getName(), TableValue.DOUBLE, value));
-                    break;
-                case "String":
-                    values.add(new TableValue(fields[i].getName(), TableValue.TEXT, value));
-                    break;
-            }
-        }
-
-        String sql = SqlUtil.insertSql(entity.getClass().getSimpleName(), values);
+        String sql = SqlEntityUtil.insertSql(entity);
         printSql(sql);
         Connection conn = dbHelper.getConnection();
 
-        if (dbHelper.type == DbHelper.TYPE_SQLITE) {
+        if (dbHelper.getDbType() == DbType.SQLITE) {
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.executeUpdate();
-            dbHelper.close(conn, ps);
+            ps.close();
+//            conn.close();
+//            dbHelper.close();
             return 0;
         } else {
             return executeInsert(conn, sql);
@@ -279,11 +157,102 @@ public class Dao {
     }
 
     /**
+     * 根据主键找到相应的记录并修改所有非主键z字段的值
+     *
+     * @return 成功修改的记录数目
+     */
+    public synchronized int updateById(Object entity) throws SQLException {
+        String sql = SqlEntityUtil.updateByIdSql(entity);
+        printSql(sql);
+        return executeUpdate(sql);
+    }
+
+    /**
+     * 依据id作为where条件修改某一个字段的值
+     *
+     * @return 成功修改的记录数目
+     */
+    public synchronized int update(Class entityClass, String id, String setName, String setValue)
+            throws SQLException {
+        String sql = SqlEntityUtil.updateSql(entityClass, id, setName, setValue);
+        printSql(sql);
+        return executeUpdate(sql);
+    }
+
+    /**
+     * 依据id作为where条件删除某一条记录
+     *
+     * @return 成功删除的记录数目
+     */
+    public synchronized int deleteById(Class entityClass, String id) throws SQLException {
+        String sql = SqlEntityUtil.deleteByIdSql(entityClass, id);
+        printSql(sql);
+        return executeUpdate(sql);
+    }
+
+    /**
+     * 删除某一条记录
+     *
+     * @return 成功删除的记录数目
+     */
+    public synchronized int delete(Class entityClass, String whereName, String whereValue)
+            throws SQLException {
+        String sql = SqlEntityUtil.deleteSql(entityClass, whereName, whereValue);
+        printSql(sql);
+        return executeUpdate(sql);
+    }
+
+    public void execute(String sql) throws SQLException {
+        Connection conn = dbHelper.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.execute();
+        ps.close();
+//        dbHelper.close(conn, ps);
+    }
+
+    public <T> List<T> executeQuery(Class<T> entityClass, String sql) throws SQLException {
+        Connection conn = dbHelper.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        List<T> entityList = getResult(entityClass, rs);
+        ps.close();
+        rs.close();
+//        dbHelper.close(conn, ps, rs);
+        return entityList;
+    }
+
+    public static <T> List<T> getResult(Class<T> entityClass, ResultSet rs) throws SQLException {
+
+        List<T> entityList = new ArrayList<>();
+        Field[] fields = entityClass.getDeclaredFields();
+
+        while (rs.next()) {
+            T entity;
+            try {
+                entity = entityClass.newInstance();
+            } catch (Exception e) {
+                throw new SQLException(e.toString());
+            }
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Object object = rs.getObject(field.getName());
+                try {
+                    field.set(entity, object);
+                } catch (IllegalAccessException e) {
+                    throw new SQLException(e.toString());
+                }
+            }
+            entityList.add(entity);
+        }
+        return entityList;
+    }
+
+    /**
      * 执行插入的sql语句
      *
      * @return 返回自增主键的id值
      */
-    private static int executeInsert(Connection conn, String sql) throws SQLException {
+    public int executeInsert(Connection conn, String sql) throws SQLException {
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = ps.getGeneratedKeys();
@@ -299,153 +268,19 @@ public class Dao {
         }
     }
 
-    /**
-     * 这个方法默认第一个成员变量为id，并且依据这个id作为where条件修改全部字段的值
-     *
-     * @return 是否成功修改
-     */
-    public synchronized boolean updateById(Object entity) throws SQLException {
-        Field[] fields = entity.getClass().getDeclaredFields();
-        fields = filterStaticField(fields);
-        TableValue where = null;
-        ArrayList<TableValue> setValues = new ArrayList<>();
-
-        for (int i = 0; i < fields.length; i++) {
-            fields[i].setAccessible(true);
-
-            try {
-                if (i == 0) {
-                    fields[i].getName();
-                    where = new TableValue(fields[i].getName(), TableValue.INT, fields[i].get(entity));
-                } else {
-                    int type = TableValue.getTypeFromClassName(fields[i].getType().getSimpleName());
-                    setValues.add(new TableValue(fields[i].getName(), type, fields[i].get(entity)));
-                }
-
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        String sql = SqlUtil.updateSql(entity.getClass().getSimpleName(), setValues, where);
-        printSql(sql);
+    public int executeUpdate(String sql) throws SQLException {
         Connection conn = dbHelper.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
-        dbHelper.close(conn, ps);
-        return count > 0;
-
-    }
-
-    /**
-     * 这个方法默认第一个成员变量为id，并且依据这个id作为where条件修改某一个字段的值
-     *
-     * @return 是否成功修改
-     */
-    public synchronized boolean update(Class entityClass, int id, String name, Object value) throws SQLException {
-        Field[] fields = filterStaticField(entityClass.getDeclaredFields());
-        Field idField = fields[0];
-        String typeName;
-        try {
-            typeName = entityClass.getDeclaredField(name).getType().getSimpleName();
-        } catch (NoSuchFieldException e) {
-            throw new SQLException(e.toString());
-        }
-        int type = TableValue.getTypeFromClassName(typeName);
-        TableValue where = new TableValue(idField.getName(), TableValue.INT, id);
-        TableValue setValue = new TableValue(name, type, value);
-
-        String sql = SqlUtil.updateSql(entityClass.getSimpleName(), setValue, where);
-        printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        int count = ps.executeUpdate();
-        dbHelper.close(conn, ps);
-        return count > 0;
-
-    }
-
-    public synchronized boolean deleteById(Class entityClass, int id) throws SQLException {
-        Field[] fields = filterStaticField(entityClass.getDeclaredFields());
-        Field idField = fields[0];
-        idField.setAccessible(true);
-        TableValue where = new TableValue(idField.getName(), TableValue.INT, id);
-
-        String sql = SqlUtil.deleteSql(entityClass.getSimpleName(), where);
-        printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        int count = ps.executeUpdate();
-        dbHelper.close(conn, ps);
-
-        return count > 0;
-
-    }
-
-    public synchronized boolean delete(Class entityClass, String whereName, Object whereValue) throws SQLException {
-        Field field;
-        try {
-            field = entityClass.getDeclaredField(whereName);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            throw new SQLException(e.toString());
-        }
-        int type = TableValue.getTypeFromClassName(field.getType().getSimpleName());
-
-        TableValue where = new TableValue(whereName, type, whereValue);
-        String sql = SqlUtil.deleteSql(entityClass.getSimpleName(), where);
-        printSql(sql);
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        int count = ps.executeUpdate();
-        dbHelper.close(conn, ps);
-        return count > 0;
-
-    }
-
-    protected <T> List<T> getResult(Class<T> entityClass, ResultSet rs) {
-        ArrayList<T> entityList = new ArrayList<>();
-        Field[] fields = entityClass.getDeclaredFields();
-        fields = filterStaticField(fields);
-
-        try {
-            while (rs.next()) {
-                T entity = entityClass.newInstance();
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    field.set(entity, rs.getObject(field.getName()));
-                }
-                entityList.add(entity);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return entityList;
-    }
-
-    private Field[] filterStaticField(Field[] fields) {
-        ArrayList<Field> list = new ArrayList<>();
-        for (Field field : fields) {
-            if ((field.getModifiers() & Modifier.STATIC) == 0) {//若修饰符中没有static
-                list.add(field);
-            }
-        }
-
-        Field[] newFields = new Field[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            newFields[i] = list.get(i);
-        }
-
-        return newFields;
-
+        ps.close();
+//        dbHelper.close(conn, ps);
+        return count;
     }
 
     private void printSql(String sql) {
-        System.out.println(sql);
-        System.out.println();
+        if (printSql) {
+            System.out.println(DebugUtil.getDebugMessage(sql + "\n", 2));
+        }
     }
-    
+
 }

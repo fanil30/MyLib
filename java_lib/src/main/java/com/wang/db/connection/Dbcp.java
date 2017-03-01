@@ -1,4 +1,4 @@
-package com.wang.db;
+package com.wang.db.connection;
 
 import org.apache.commons.dbcp.BasicDataSource;
 

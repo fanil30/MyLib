@@ -1,4 +1,4 @@
-package com.wang.db.v2;
+package com.wang.db.basis;
 
 /**
  * by wangrongjun on 2016/12/31.

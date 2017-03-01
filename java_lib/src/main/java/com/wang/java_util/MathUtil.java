@@ -1,6 +1,7 @@
 package com.wang.java_util;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -186,13 +187,39 @@ public class MathUtil {
     }
 
     /**
-     * 得到left至right范围内的一个随机整数。注意当left>right时返回0。
+     * 得到left至right范围内的一个随机整数（包括left和right）。注意当left>right时返回0。
      */
     public static int random(int left, int right) {
-        if (left > right) return 0;
+        if (left > right || left < 0 || right <= 0) return 0;
         Random random = new Random();
         int i = random.nextInt(right - left + 1);//例如random.nextInt(10)，会返回0至9的一个随机整数
         return i + left;
+    }
+
+    /**
+     * 得到left至right范围内的多个不重复随机整数（包括left和right）。
+     *
+     * @return 当left>right或n过大时返回null。
+     */
+    public static List<Integer> randomList(int left, int right, int n) {
+        if (left > right || left < 0 || right <= 0) return null;
+        if (right - left <= n - 2) return null;
+        List<Integer> list = new ArrayList<>();
+        while (n > 0) {
+            int random = random(left, right);
+            boolean exists = false;
+            for (int i : list) {
+                if (i == random) {
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                list.add(random);
+                n--;
+            }
+        }
+        return list;
     }
 
 }

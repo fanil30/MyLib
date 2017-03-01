@@ -1,5 +1,6 @@
 package com.wang.java_util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,6 +49,13 @@ public class StreamUtil {
         byte[] data = baos.toByteArray();
         baos.close();
         return data;
+    }
+
+    public static InputStream toInputStream(String text) {
+        if (TextUtil.isEmpty(text)) {
+            return null;
+        }
+        return new ByteArrayInputStream(text.getBytes());
     }
 
 }

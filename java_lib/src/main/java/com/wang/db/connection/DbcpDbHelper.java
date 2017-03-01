@@ -1,6 +1,6 @@
-package com.wang.db.v2;
+package com.wang.db.connection;
 
-import com.wang.db.Dbcp;
+import com.wang.db.basis.DbType;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,7 +10,7 @@ import java.sql.SQLException;
 /**
  * 负责数据库的连接
  */
-public class DbHelper {
+public class DbcpDbHelper implements DbHelper {
 
     private String username;
     private String password;
@@ -28,7 +28,7 @@ public class DbHelper {
     /**
      * Mysql的构造方法
      */
-    public DbHelper(String username, String password, String mysqlDbName) {
+    public DbcpDbHelper(String username, String password, String mysqlDbName) {
         this.username = username;
         this.password = password;
         this.mysqlDbName = mysqlDbName;
@@ -38,7 +38,7 @@ public class DbHelper {
     /**
      * Sqlite的构造方法
      */
-    public DbHelper(String sqliteDbFilePath) {
+    public DbcpDbHelper(String sqliteDbFilePath) {
         this.sqliteDbFilePath = sqliteDbFilePath;
         dbType = DbType.SQLITE;
     }
@@ -69,6 +69,11 @@ public class DbHelper {
         String url = "jdbc:sqlite:" + sqliteDbFilePath;
         connection = Dbcp.getConnection(url, driver, null, null);
         return connection;
+    }
+
+    @Override
+    public void close() {
+        connection = null;
     }
 
     public void close(Connection conn, PreparedStatement ps) {

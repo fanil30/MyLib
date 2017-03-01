@@ -4,10 +4,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.wang.db.exception.PrimaryKeyNotFoundException;
-import com.wang.db.v2.Constraint;
-import com.wang.db.v2.ConstraintAnno;
-import com.wang.db.v2.SqlUtil;
-import com.wang.db.v2.TypeAnno;
+import com.wang.db.basis.Constraint;
+import com.wang.db.basis.ConstraintAnno;
+import com.wang.db.SqlUtil;
+import com.wang.db.basis.TypeAnno;
 import com.wang.java_util.TextUtil;
 
 import java.lang.reflect.Field;

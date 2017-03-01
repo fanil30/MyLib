@@ -1,5 +1,13 @@
-package com.wang.db.v2;
+package com.wang.db;
 
+import com.wang.db.basis.Constraint;
+import com.wang.db.basis.ConstraintAnno;
+import com.wang.db.basis.DbSpecialCharacterChanger;
+import com.wang.db.basis.DbType;
+import com.wang.db.basis.TableField;
+import com.wang.db.basis.TableValue;
+import com.wang.db.basis.Type;
+import com.wang.db.basis.TypeAnno;
 import com.wang.db.exception.FieldNotFoundException;
 import com.wang.db.exception.PrimaryKeyNotFoundException;
 import com.wang.java_util.TextUtil;
@@ -12,7 +20,7 @@ import java.util.List;
 /**
  * by wangrongjun on 2017/1/23.
  */
-public class DaoUtil {
+public class SqlEntityUtil {
 
     public static DbType dbType = DbType.MYSQL;
     public static DbSpecialCharacterChanger changer = new DbSpecialCharacterChanger();
