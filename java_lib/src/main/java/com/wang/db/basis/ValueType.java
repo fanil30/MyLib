@@ -1,0 +1,9 @@
+package com.wang.db.basis;
+
+/**
+ * by wangrongjun on 2017/3/26.
+ */
+public enum ValueType {
+    INT,
+    TEXT
+}

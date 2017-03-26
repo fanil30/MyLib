@@ -1,36 +1,15 @@
 package com.wang.java_program.find_view_code_creator;
 
-import com.wang.java_util.FileUtil;
 import com.wang.java_util.PairList;
 import com.wang.java_util.TextUtil;
 
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * by wangrongjun on 2017/3/1.
  */
 public class CodeCreator {
-
-    public static void main(String a[]) throws ParserConfigurationException, IOException, SAXException {
-        String s1 = FileUtil.read("E:/activity_choose_music.xml");
-        System.out.println(createOnClickCode(s1, true));
-
-        System.out.println("\n\n------------------------------\n\n");
-
-        String s2 = FileUtil.read("E:/activity_clock_btn.xml");
-        System.out.println(createOnClickCode(s2, false));
-
-        System.out.println("\n\n------------------------------\n\n");
-
-        String s3 = FileUtil.read("E:/lv_clock.xml");
-        System.out.println(createOnClickCode(s3, true));
-    }
 
     public static String createDefineAndFindViewCode(String xmlText, boolean returnDefine) {
         PairList<String, String> idViewList = parseXml(xmlText);
@@ -50,13 +29,14 @@ public class CodeCreator {
 
     public static String createViewHolderCode(String xmlText) {
         String defineCode = createDefineAndFindViewCode(xmlText, true);
+        defineCode = defineCode.replace("private ", "");
         String findViewCode = createDefineAndFindViewCode(xmlText, false);
         findViewCode = findViewCode.replace("findViewById", "view.findViewById");
 
         String result = "static class ViewHolder{\n\n";
         result += defineCode + "\n";
         result += "ViewHolder(View view){\n";
-        result += findViewCode + "\n}\n}";
+        result += findViewCode + "}\n}";
         return result;
     }
 
@@ -73,7 +53,7 @@ public class CodeCreator {
             if (!TextUtil.isEmpty(onClickCode)) {
                 onClickCode += "} else ";
             }
-            onClickCode += "if(view.getId() = R.id." + id + ") {\n\n";
+            onClickCode += "if(view.getId() == R.id." + id + ") {\n\n";
         }
         if (!TextUtil.isEmpty(onClickCode)) {
             onClickCode += "}";

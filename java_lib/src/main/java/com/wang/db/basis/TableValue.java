@@ -5,19 +5,38 @@ package com.wang.db.basis;
  */
 public class TableValue {
 
-    public String name;
-    public Type type;
-    public String value;
+    /**
+     * 查询条件的模式（等式查询，模糊查询），作为where时才用到
+     */
+    enum QueryMode {
+        EQUAL,
+        LIKE
+    }
 
-    public TableValue(String name, Type type, String value) {
+    public String name;
+    public FieldType type;
+    public String value;
+    public QueryMode queryMode = QueryMode.EQUAL;
+
+    public TableValue(String name, FieldType type, String value) {
         this.name = name;
         this.type = type;
         this.value = value;
     }
 
-    public TableValue(Type type, String value) {
+    /**
+     * 作为defaultValue时才用到
+     */
+    public TableValue(FieldType type, String value) {
         this.type = type;
         this.value = value;
+    }
+
+    public TableValue(String name, FieldType type, String value, QueryMode queryMode) {
+        this.name = name;
+        this.type = type;
+        this.value = value;
+        this.queryMode = queryMode;
     }
 
 }

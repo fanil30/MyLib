@@ -1,10 +1,10 @@
 package com.wang.db;
 
-import com.wang.db.basis.TableValue;
 import com.wang.db.basis.Action;
 import com.wang.db.basis.DbType;
 import com.wang.db.basis.TableField;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.TableValue;
+import com.wang.db.basis.FieldType;
 import com.wang.java_util.TextUtil;
 
 import java.util.ArrayList;
@@ -17,24 +17,6 @@ public class SqlUtil {
 
     public static DbType dbType = DbType.MYSQL;
 
-    public static String[] setCharsetSql(String charsetName) {
-        String[] sqls = new String[5];
-        sqls[0] = "set character_set_client = '" + charsetName + "';";
-        sqls[1] = "set character_set_connection = '" + charsetName + "';";
-        sqls[2] = "set character_set_database = '" + charsetName + "';";
-        sqls[3] = "set character_set_results = '" + charsetName + "';";
-        sqls[4] = "set character_set_server = '" + charsetName + "';";
-        return sqls;
-    }
-
-    /**
-     * @param charset 空则默认为utf8
-     */
-    public static String createDatabaseSql(String name, String charset) {
-        charset = TextUtil.isEmpty(charset) ? "utf8" : charset;
-        return "create database if not exists " + name + " character set " + charset + ";";
-    }
-
     /**
      * 创建表的生存方法
      */
@@ -44,7 +26,7 @@ public class SqlUtil {
         for (int i = 0; i < tableFields.size(); i++) {
             TableField field = tableFields.get(i);
             String s = field.name + " " +
-                    getType(field.type) +
+                    FieldType.toFieldTypeString(dbType, field.type) +
                     (field.unsigned ? " unsigned" : "") +
                     (field.primaryKey ? " primary key auto_increment" : "") +
                     ((!field.primaryKey && field.notNull) ? " not null" : "") +
@@ -64,18 +46,6 @@ public class SqlUtil {
             return "";
         }
 
-    }
-
-    public static String dropTableSql(String tableName) {
-        return "drop table if exists " + tableName + ";";
-    }
-
-    public static String dropTableColumnSql(String tableName, String columnName) {
-        return "alter table " + tableName + " drop " + columnName + ";";
-    }
-
-    public static String setAutoIncrementNumberSql(String tableName, int number) {
-        return "alter table " + tableName + " auto_increment=" + number + ";";
     }
 
     public static String getLatestAutoIncrementNumberSql(String tableName, String primaryKeyName) {
@@ -252,39 +222,62 @@ public class SqlUtil {
     /**
      * 生成查询语句 - 具体实现
      *
-     * @param wheres    若为空或长度为0，则查询所有记录
-     * @param orderBy   根据该字段对结果排序，若为空或长度为0，则参数orderDesc无效，默认排序
-     * @param orderDesc 是否倒序排列结果
+     * @param tableName   数据表名字
+     * @param whereList   查询条件的列表，若为空或长度为0，则查询所有记录
+     * @param orderByList 排序字段的列表（字段名字前加负号"-"，则为倒序，否则正序）
+     * @param begin       分页的起始（begin或length为空则不分页）
+     * @param length      分页的长度
+     *                    // TODO 添加模糊查询功能
      */
-    public static String querySql(String tableName, List<TableValue> wheres,
-                                  String orderBy, boolean orderDesc) {
+    public static String querySql(String tableName, List<TableValue> whereList,
+                                  List<String> orderByList, Integer begin, Integer length) {
         String sql = "select * from " + tableName;
-        if (wheres != null && wheres.size() != 0) {
-            sql += " where " + getExpressionList(wheres, " and ");
+        if (whereList != null && whereList.size() != 0) {
+            sql += " where " + getExpressionList(whereList, " and ");
         }
 
-        if (!TextUtil.isEmpty(orderBy)) {
-            sql += " order by " + orderBy;
-            if (orderDesc) {
-                sql += " desc";
+        if (orderByList != null && orderByList.size() != 0) {
+            sql += " order by ";
+            for (int i = 0; i < orderByList.size(); i++) {
+                String s = orderByList.get(i);
+                if (s.startsWith("-")) {
+                    sql += s.replace("-", "") + " desc";
+                } else {
+                    sql += s;
+                }
+                if (i < orderByList.size() - 1) {//若不是最后一个
+                    sql += ",";
+                }
             }
         }
+
+        if (begin != null && length != null) {
+            sql += " limit " + begin + "," + length;
+        }
+
         sql += ";";
         return sql;
     }
 
     /**
-     * 生成查询语句 - 接口实现
+     * 生成查询语句 - 接口实现1
      */
-    public static String querySql(String tableName, TableValue where,
-                                  String orderBy, boolean orderDesc) {
-        List<TableValue> wheres = new ArrayList<>();
-        wheres.add(where);
-        return querySql(tableName, wheres, orderBy, orderDesc);
+    public static String querySql(String tableName, List<TableValue> whereList) {
+        return querySql(tableName, whereList, null, null, null);
+    }
+
+    /**
+     * 生成查询语句 - 接口实现2
+     */
+    public static String querySql(String tableName, TableValue where) {
+        List<TableValue> whereList = new ArrayList<>();
+        whereList.add(where);
+        return querySql(tableName, whereList);
     }
 
     /**
      * 生成模糊查询语句 - 具体实现
+     * // TODO 把模糊查询功能合并到上方第一个querySql方法中
      */
     public static String queryFuzzySql(String tableName, TableValue where,
                                        String orderBy, boolean orderDesc) {
@@ -300,7 +293,6 @@ public class SqlUtil {
         sql += ";";
         return sql;
     }
-
 
     /**
      * @param separator 表达式之间的分隔符。常见的有" and "(where条件语句) 和 ","（update赋值语句）
@@ -337,22 +329,6 @@ public class SqlUtil {
     }
 
     /**
-     * @param after 空则插在第一位，否则名为after的列的后面
-     */
-    public static String addTableColumn(String tableName, TableField field, String after) {
-        String sql = "alter table " + tableName + " add ";
-        sql += field.name + " " +
-                getType(field.type) +
-                (field.unsigned ? " unsigned" : "") +
-                (field.primaryKey ? " primary key auto_increment" : "") +
-                ((!field.primaryKey && field.notNull) ? " not null" : "") +
-                ((!field.primaryKey && field.unique) ? " unique key" : "") +
-                ((!TextUtil.isEmpty(after)) ? " after " + after : " first") +
-                ";";
-        return sql;
-    }
-
-    /**
      * 对插入、查询等需要用到的value的特殊字符进行转义
      * <p/>
      * 1.若出现单引号，进行转义
@@ -365,48 +341,6 @@ public class SqlUtil {
             value = value + "\\";
         }
         return value;
-    }
-
-    private static String getType(Type type) {
-        String strType = "";
-        switch (type) {
-            case TINYINT:
-                strType = "tinyint";
-                break;
-            case INT:
-                if (dbType == DbType.MYSQL) {
-                    strType = "int";
-                } else if (dbType == DbType.SQLITE) {
-                    strType = "integer";
-                }
-                break;
-            case DOUBLE:
-                if (dbType == DbType.MYSQL) {
-                    strType = "double";
-                } else if (dbType == DbType.SQLITE) {
-                    strType = "real";
-                }
-                break;
-            case VARCHAR_10:
-                strType = "varchar(10)";
-                break;
-            case VARCHAR_20:
-                strType = "varchar(20)";
-                break;
-            case VARCHAR_50:
-                strType = "varchar(50)";
-                break;
-            case VARCHAR_100:
-                strType = "varchar(100)";
-                break;
-            case VARCHAR_500:
-                strType = "varchar(500)";
-                break;
-            case TEXT:
-                strType = "text";
-                break;
-        }
-        return strType;
     }
 
 }

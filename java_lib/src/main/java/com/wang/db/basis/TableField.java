@@ -6,14 +6,14 @@ package com.wang.db.basis;
 public class TableField {
 
     public String name;
-    public Type type;
+    public FieldType type;
     public boolean primaryKey = false;
     public boolean unsigned = false;
     public boolean notNull = false;
     public boolean unique = false;
     public TableValue defaultValue;
 
-    public TableField(String name, Type type) {
+    public TableField(String name, FieldType type) {
         this.name = name;
         this.type = type;
     }

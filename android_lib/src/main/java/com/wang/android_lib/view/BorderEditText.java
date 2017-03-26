@@ -61,7 +61,7 @@ public class BorderEditText extends LinearLayout {
         Drawable clearBtnIcon = ta.getDrawable(R.styleable.BorderEditText_clearBtnIcon);
         int solidColor = ta.getColor(R.styleable.BorderEditText_solidColor, 0);
         int borderColor = ta.getColor(R.styleable.BorderEditText_borderColor, 0);
-        float borderWidth = ta.getDimension(R.styleable.BorderEditText_borderWidth, 0);
+        float borderWidth = ta.getDimension(R.styleable.BorderEditText_border_width, 0);
         float radius = ta.getDimension(R.styleable.BorderEditText_radius, 0);
 
         ta.recycle();

@@ -3,7 +3,7 @@ package com.wang.java_program.shopping_system.bean;
 import com.wang.db.basis.Action;
 import com.wang.db.basis.Constraint;
 import com.wang.db.basis.ConstraintAnno;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
 
 /**
@@ -11,17 +11,17 @@ import com.wang.db.basis.TypeAnno;
  */
 public class GoodImage {
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.PRIMARY_KEY)
     private int goodImageId;
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.FOREIGN_KEY,
             foreignTable = "Good", foreignField = "goodId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int goodId;
 
-    @TypeAnno(type = Type.TEXT)
+    @TypeAnno(type = FieldType.TEXT)
     @ConstraintAnno(constraint = Constraint.NOT_NULL)
     private String imageUrl;
 

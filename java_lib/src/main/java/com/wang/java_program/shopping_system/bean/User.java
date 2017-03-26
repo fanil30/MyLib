@@ -2,7 +2,7 @@ package com.wang.java_program.shopping_system.bean;
 
 import com.wang.db.basis.Constraint;
 import com.wang.db.basis.ConstraintAnno;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
 
 /**
@@ -11,26 +11,26 @@ import com.wang.db.basis.TypeAnno;
  */
 public class User {
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.PRIMARY_KEY)
     private int userId;
 
-    @TypeAnno(type = Type.VARCHAR_20)
+    @TypeAnno(type = FieldType.VARCHAR_20)
     @ConstraintAnno(constraint = Constraint.UNIQUE_NOT_NULL)
     private String phone;//手机号
 
-    @TypeAnno(type = Type.VARCHAR_50)
+    @TypeAnno(type = FieldType.VARCHAR_50)
     @ConstraintAnno(constraint = Constraint.NOT_NULL)
     private String password;
 
-    @TypeAnno(type = Type.VARCHAR_20)
+    @TypeAnno(type = FieldType.VARCHAR_20)
     @ConstraintAnno(constraint = Constraint.NOT_NULL)
     private String realName;//真实姓名
 
-    @TypeAnno(type = Type.VARCHAR_50)
+    @TypeAnno(type = FieldType.VARCHAR_50)
     private String nickname;//昵称
 
-    @TypeAnno(type = Type.TINYINT)
+    @TypeAnno(type = FieldType.TINYINT)
     @ConstraintAnno(constraint = Constraint.DEFAULT, defaultValue = "-1")
     private int gender;//-1为未设置，0为女，1为男，默认为-1
 

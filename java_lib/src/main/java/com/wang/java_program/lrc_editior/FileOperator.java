@@ -1,4 +1,4 @@
-package com.wang.lrc_editior;
+package com.wang.java_program.lrc_editior;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

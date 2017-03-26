@@ -3,7 +3,7 @@ package com.wang.java_program.shopping_system.bean;
 import com.wang.db.basis.Action;
 import com.wang.db.basis.Constraint;
 import com.wang.db.basis.ConstraintAnno;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
 
 /**
@@ -12,31 +12,31 @@ import com.wang.db.basis.TypeAnno;
  */
 public class Orders {
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.PRIMARY_KEY)
     private int orderId;
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.FOREIGN_KEY,
             foreignTable = "User", foreignField = "userId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int userId;
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.FOREIGN_KEY,
             foreignTable = "Good", foreignField = "goodId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int goodId;
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.DEFAULT, defaultValue = "1")
     private int count;//购买数量
 
-    @TypeAnno(type = Type.VARCHAR_20)
+    @TypeAnno(type = FieldType.VARCHAR_20)
     @ConstraintAnno(constraint = Constraint.NOT_NULL)
     private String createDate;
 
-    @TypeAnno(type = Type.VARCHAR_20)
+    @TypeAnno(type = FieldType.VARCHAR_20)
     private String finishDate;//订单生成时为空，客户收货后设置。可以判断订单是否结束
 
     public Orders() {

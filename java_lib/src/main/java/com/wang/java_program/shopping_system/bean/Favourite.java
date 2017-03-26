@@ -3,7 +3,7 @@ package com.wang.java_program.shopping_system.bean;
 import com.wang.db.basis.Action;
 import com.wang.db.basis.Constraint;
 import com.wang.db.basis.ConstraintAnno;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
 
 /**
@@ -12,12 +12,12 @@ import com.wang.db.basis.TypeAnno;
  */
 public class Favourite {
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.FOREIGN_KEY, foreignTable = "User", foreignField = "userId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int userId;
 
-    @TypeAnno(type = Type.INT)
+    @TypeAnno(type = FieldType.INT)
     @ConstraintAnno(constraint = Constraint.FOREIGN_KEY, foreignTable = "Good", foreignField = "goodId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int goodId;

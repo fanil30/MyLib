@@ -6,7 +6,7 @@ import com.wang.db.basis.DbSpecialCharacterChanger;
 import com.wang.db.basis.DbType;
 import com.wang.db.basis.TableField;
 import com.wang.db.basis.TableValue;
-import com.wang.db.basis.Type;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
 import com.wang.db.exception.FieldNotFoundException;
 import com.wang.db.exception.PrimaryKeyNotFoundException;
@@ -36,7 +36,7 @@ public class SqlEntityUtil {
             if (typeAnno == null) {
                 continue;
             }
-            Type type = typeAnno.type();
+            FieldType type = typeAnno.type();
             TableField tableField = new TableField(field.getName(), type);
 
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
@@ -112,7 +112,7 @@ public class SqlEntityUtil {
     public static String queryByIdSql(Class entityClass, String id) throws PrimaryKeyNotFoundException {
 
         String primaryKeyName = null;
-        Type primaryKeyType = null;
+        FieldType primaryKeyType = null;
         Field[] fields = entityClass.getDeclaredFields();
         for (Field field : fields) {
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
@@ -126,17 +126,16 @@ public class SqlEntityUtil {
         }
 
         TableValue where = new TableValue(primaryKeyName, primaryKeyType, changer.encode(id));
-        return SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
+        return SqlUtil.querySql(entityClass.getSimpleName(), where);
     }
 
     public static String queryAllSql(Class entityClass) throws SQLException {
-        return SqlUtil.querySql(entityClass.getSimpleName(), new ArrayList<TableValue>(),
-                null, false);
+        return SqlUtil.querySql(entityClass.getSimpleName(), new ArrayList<TableValue>());
     }
 
     public static String querySql(Class entityClass, String whereName, String whereValue,
                                   boolean fuzzy) throws FieldNotFoundException {
-        Type whereType;
+        FieldType whereType;
         try {
             whereType = entityClass.getDeclaredField(whereName).getAnnotation(TypeAnno.class).type();
         } catch (Exception e) {
@@ -150,8 +149,29 @@ public class SqlEntityUtil {
         if (fuzzy) {
             sql = SqlUtil.queryFuzzySql(entityClass.getSimpleName(), where, null, false);
         } else {
-            sql = SqlUtil.querySql(entityClass.getSimpleName(), where, null, false);
+            sql = SqlUtil.querySql(entityClass.getSimpleName(), where);
         }
+        return sql;
+    }
+
+    public static String querySql(Class entityClass, String whereName1, String whereValue1,
+                                  String whereName2, String whereValue2) throws FieldNotFoundException {
+        FieldType whereType1;
+        FieldType whereType2;
+        try {
+            whereType1 = entityClass.getDeclaredField(whereName1).getAnnotation(TypeAnno.class).type();
+            whereType2 = entityClass.getDeclaredField(whereName2).getAnnotation(TypeAnno.class).type();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FieldNotFoundException(whereName1 + " or " + whereName2);
+        }
+
+        List<TableValue> whereList = new ArrayList<>();
+        whereList.add(new TableValue(whereName1, whereType1, changer.encode(whereValue1)));
+        whereList.add(new TableValue(whereName2, whereType2, changer.encode(whereValue2)));
+
+        String sql;
+        sql = SqlUtil.querySql(entityClass.getSimpleName(), whereList);
         return sql;
     }
 
@@ -162,13 +182,16 @@ public class SqlEntityUtil {
 
         for (Field field : fields) {
 
-            ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
-            if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
+            TypeAnno typeAnno = field.getAnnotation(TypeAnno.class);
+            if (typeAnno == null) {
                 continue;
             }
+            ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
+            if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
+                continue;//插入时没必要设置主键
+            }
 
-            //如果constraintAnno不为空，则TypeAnno不可能为空，所有不用判空。
-            Type type = field.getAnnotation(TypeAnno.class).type();
+            FieldType type = typeAnno.type();
             String value = "";
             field.setAccessible(true);
             try {
@@ -194,7 +217,7 @@ public class SqlEntityUtil {
             if (typeAnno == null) {
                 continue;
             }
-            Type type = typeAnno.type();
+            FieldType type = typeAnno.type();
 
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
@@ -229,7 +252,7 @@ public class SqlEntityUtil {
 //        1.获取主键的名称和类型
         Field[] fields = entityClass.getDeclaredFields();
         String idName = null;
-        Type idType = null;
+        FieldType idType = null;
         for (Field field : fields) {
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
@@ -243,7 +266,7 @@ public class SqlEntityUtil {
         }
 
 //        2.获取修改字段的类型        
-        Type setType;
+        FieldType setType;
         try {
             Field field = entityClass.getDeclaredField(setName);
             setType = field.getAnnotation(TypeAnno.class).type();
@@ -262,7 +285,7 @@ public class SqlEntityUtil {
 //        1.获取主键的名称和类型
         Field[] fields = entityClass.getDeclaredFields();
         String idName = null;
-        Type idType = null;
+        FieldType idType = null;
         for (Field field : fields) {
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
@@ -288,7 +311,7 @@ public class SqlEntityUtil {
             throws FieldNotFoundException {
 
 //        1.获取作为查询条件的字段的类型
-        Type whereType;
+        FieldType whereType;
         try {
             Field field = entityClass.getDeclaredField(whereName);
             whereType = field.getAnnotation(TypeAnno.class).type();

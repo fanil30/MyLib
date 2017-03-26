@@ -9,6 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TypeAnno {
 
-    Type type() default Type.TEXT;
+    FieldType type() default FieldType.TEXT;
 
 }
