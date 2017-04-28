@@ -131,4 +131,104 @@ public class BinaryUtil {
         }
     }
 
+    public static long toNumber(String binaryString) throws Exception {
+        long temp = 1;
+        long result = 0;
+        for (int i = binaryString.length() - 1; i >= 0; i--) {
+            char c = binaryString.charAt(i);
+            if (c == '1') {
+                result += temp;
+            } else if (c != '0') {
+                throw new Exception("not binary string, with illegal char: " + c);
+            }
+            temp *= 2;
+        }
+        return result;
+    }
+
+    /**
+     * 返回形如ffffff格式的字符串
+     *
+     * @param r red,0-255
+     * @param g green,0-255
+     * @param b blue,0-255
+     * @return
+     */
+    public static String toRGBString(int r, int g, int b) {
+        String rs = to16String(r);
+        String gs = to16String(b);
+        String bs = to16String(r);
+        if (rs.length() == 1) {
+            rs = "0" + rs;
+        }
+        if (gs.length() == 1) {
+            gs = "0" + gs;
+        }
+        if (bs.length() == 1) {
+            bs = "0" + bs;
+        }
+        return rs + gs + bs;
+    }
+
+    /**
+     * 十进制数转换成16进制的字符串
+     */
+    public static String to16String(int number) {
+        String result = "";
+        int temp;// 商
+        do {
+            temp = number / 16;
+            int i = number % 16;// 余数
+            if (i < 10) {
+                result = i + result;
+            } else {
+                switch (i) {
+                    case 10:
+                        result = "A" + result;
+                        break;
+                    case 11:
+                        result = "B" + result;
+                        break;
+                    case 12:
+                        result = "C" + result;
+                        break;
+                    case 13:
+                        result = "D" + result;
+                        break;
+                    case 14:
+                        result = "E" + result;
+                        break;
+                    case 15:
+                        result = "F" + result;
+                        break;
+                }
+            }
+            number = temp;
+        } while (temp > 0);
+
+        return result;
+    }
+
+    /**
+     * 把16进制的字符串转换成10进制数字
+     */
+    public static int to10Number(String s16) {
+        s16 = s16.toUpperCase();
+        int result = 0;
+        int temp = 1;
+        for (int i = s16.length() - 1; i >= 0; i--) {
+            char c = s16.charAt(i);
+            if (c >= 48 && c <= 57) {
+                result += temp * (c - 48);
+            } else if (c >= 65 && c <= 90) {
+                result += temp * (c - 65 + 10);
+            } else {
+                System.out.println("error: with illegal char: " + c);
+                return -1;
+            }
+            temp *= 16;
+        }
+        return result;
+    }
+
 }

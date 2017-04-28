@@ -14,7 +14,7 @@ public class ShopDao extends CustomDao {
      * 根据商店id进行模精确查询
      */
     public Shop query(int shopId) throws SQLException {
-        List<Shop> shopList = query(Shop.class, "shopId", shopId + "", false);
+        List<Shop> shopList = query(Shop.class, "shopId", shopId + "");
         if (shopList != null && shopList.size() > 0) {
             return shopList.get(0);
         }
@@ -25,7 +25,10 @@ public class ShopDao extends CustomDao {
      * 根据商店名进行模糊查询
      */
     public List<Shop> queryFuzzy(String shopName) throws SQLException {
-        return query(Shop.class, "shopName", shopName, true);
+        // TODO
+//        return query(Shop.class, "shopName", shopName, true);
+        return null;
+
     }
 
 }

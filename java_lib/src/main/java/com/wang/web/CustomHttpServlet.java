@@ -1,6 +1,5 @@
 package com.wang.web;
 
-import com.wang.java_util.JsonFormatUtil;
 import com.wang.java_util.StreamUtil;
 import com.wang.java_util.TextUtil;
 
@@ -35,7 +34,7 @@ public abstract class CustomHttpServlet extends HttpServlet {
      */
     private String charset = "utf-8";
 
-    private String cookie;
+    private String responseCookie;
 
     protected void setCanRead(boolean canRead) {
         this.canRead = canRead;
@@ -60,17 +59,18 @@ public abstract class CustomHttpServlet extends HttpServlet {
         return null;
     }
 
-    protected void onGetParameterFinish(HashMap parameterMap) {
-    }
-
     protected String onGetUploadPath(String fileName) {
         return fileName;
     }
 
-    protected void onReadInputFinish(String text) {
+    protected void onReadDataFinish(HashMap parameterMap, String input, String cookie) {
     }
 
     protected void onUploadFinish(boolean success, String msg) {
+    }
+
+    protected String onSetResponseCookieStart() {
+        return null;
     }
 
     protected String onWriteResultStart() {
@@ -82,41 +82,36 @@ public abstract class CustomHttpServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         onCreate(request, response);
 
         request.setCharacterEncoding(charset);
         response.setCharacterEncoding(charset);
 
-
         try {
-
 //            0.获取cookie和requestUrl
-            cookie = request.getHeader("Set-Cookie");
+            String requestCookie = request.getHeader("Set-Cookie");
 
-//            1.根据参数名获取参数值并把参数名-参数值以键值对的形式返回到onGetParamaterFinish的参数
+//            1.根据参数名获取参数值并把参数名-参数值以键值对的形式返回到onGetParameterFinish的参数
             String parameters[] = onGetParameterStart();
+            HashMap<String, String> map = new HashMap<>();
             if (parameters != null) {
-                HashMap<String, String> map = new HashMap<>();
                 for (String parameter : parameters) {
                     String value = request.getParameter(parameter);
                     if (!TextUtil.isEmpty(value)) {
                         map.put(parameter, value);
                     }
                 }
-                onGetParameterFinish(map);
             }
-
 
 //            2.从request读取数据，并返回到onReadInputFinish的参数或onUploadFinish的文件路径
 //              a.若模式为文本上传如客户端上传json格式的数据。
             if (canRead && !upload) {
-                String text = StreamUtil.readInputStream(request.getInputStream(), charset);
-                if (!TextUtil.isEmpty(text)) {
-                    System.out.println("client output: \n" +
-                            TextUtil.limitLength(text, 300, "......") + "\n");
-                    onReadInputFinish(text);
-                }
+                String input = StreamUtil.readInputStream(request.getInputStream(), charset);
+//                if (!TextUtil.isEmpty(input)) {
+//                    System.out.println("client output: \n" +
+//                            TextUtil.limitLength(input, 300, "......") + "\n");
+//                }
+                onReadDataFinish(map, input, requestCookie);
 
 //              b.若模式为客户端进行文件上传
             } else if (canRead) {
@@ -144,18 +139,17 @@ public abstract class CustomHttpServlet extends HttpServlet {
 
             }
 
-
 //            3.写出cookie
-            if (!TextUtil.isEmpty(cookie)) {
-                response.setHeader("Set-Cookie", cookie);
+            responseCookie = onSetResponseCookieStart();
+            if (!TextUtil.isEmpty(responseCookie)) {
+                response.setHeader("Cookie", responseCookie);
             }
-
 
 //            4.调用onWriteOutputStart获取数据，并写出到response的输出流
             if (canWrite) {
                 String out = onWriteResultStart();
                 if (!TextUtil.isEmpty(out)) {
-                    System.out.println(JsonFormatUtil.formatJson(out));
+//                    System.out.println(JsonFormatUtil.formatJson(out));
                     OutputStreamWriter osw = new OutputStreamWriter(response.getOutputStream(), charset);
                     osw.write(out);
                     osw.flush();
@@ -176,13 +170,8 @@ public abstract class CustomHttpServlet extends HttpServlet {
         doGet(req, resp);
     }
 
-    protected void setCookie(String cookie) {
-        System.out.println("Cookie: " + cookie);
-        this.cookie = cookie;
-    }
-
-    protected String getCookie() {
-        return cookie;
+    public void setResponseCookie(String responseCookie) {
+        this.responseCookie = responseCookie;
     }
 
     protected String getWebAppDir() {

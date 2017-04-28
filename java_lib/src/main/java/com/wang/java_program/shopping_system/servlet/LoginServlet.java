@@ -20,13 +20,13 @@ public class LoginServlet extends CustomHttpServlet {
         return new String[]{"phone", "password"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
         String phone = (String) parameterMap.get("phone");
         String password = (String) parameterMap.get("password");
 
         if (TextUtil.isEmpty(phone, password)) {
-            response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.PARAM_ERROR, "ÊÖ»úºÅ»òÃÜÂëÎª¿Õ");
+            response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.PARAM_ERROR, "ï¿½Ö»ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½");
             return;
         }
 
@@ -36,7 +36,7 @@ public class LoginServlet extends CustomHttpServlet {
             if (user != null) {
                 response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.OK, user, null);
             } else {
-                response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.ERROR_NORMAL, "ÊÖ»úºÅ²»´æÔÚ»òÃÜÂë´íÎó");
+                response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.ERROR_NORMAL, "ï¿½Ö»ï¿½ï¿½Å²ï¿½ï¿½ï¿½ï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             }
         } catch (Exception e) {
             e.printStackTrace();

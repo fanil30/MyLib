@@ -5,5 +5,6 @@ package com.wang.db.basis;
  */
 public enum ValueType {
     INT,
+    DOUBLE,
     TEXT
 }

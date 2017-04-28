@@ -23,13 +23,13 @@ public class GetGoodImageListServlet extends CustomHttpServlet {
         return new String[]{"goodId"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         String goodId = (String) parameterMap.get("goodId");
 
         if (TextUtil.isEmpty(goodId)) {
-            response = new Response<>(StateCode.PARAM_ERROR, "goodId²»ÄÜÎª¿Õ");
+            response = new Response<>(StateCode.PARAM_ERROR, "goodIdï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½");
             return;
         }
 

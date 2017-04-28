@@ -4,10 +4,12 @@ import com.wang.db.basis.Constraint;
 import com.wang.db.basis.ConstraintAnno;
 import com.wang.db.basis.DbSpecialCharacterChanger;
 import com.wang.db.basis.DbType;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TableField;
 import com.wang.db.basis.TableValue;
-import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TypeAnno;
+import com.wang.db.basis.ValueType;
+import com.wang.db.basis.Where;
 import com.wang.db.exception.FieldNotFoundException;
 import com.wang.db.exception.PrimaryKeyNotFoundException;
 import com.wang.java_util.TextUtil;
@@ -15,6 +17,7 @@ import com.wang.java_util.TextUtil;
 import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,8 +39,8 @@ public class SqlEntityUtil {
             if (typeAnno == null) {
                 continue;
             }
-            FieldType type = typeAnno.type();
-            TableField tableField = new TableField(field.getName(), type);
+            FieldType fieldType = typeAnno.type();
+            TableField tableField = new TableField(field.getName(), fieldType);
 
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null) {
@@ -62,7 +65,7 @@ public class SqlEntityUtil {
                     case DEFAULT:
                         //先对特殊字符进行转义，至于之后是否需要还原，看情况（比如\\就不用）
                         String value = changer.encode(constraintAnno.defaultValue());
-                        tableField.defaultValue(new TableValue(type, value));
+                        tableField.defaultValue(new TableValue(TableValue.toValueType(fieldType), value));
                         break;
                     case FOREIGN_KEY:
                         break;
@@ -109,72 +112,6 @@ public class SqlEntityUtil {
         return sqlList;
     }
 
-    public static String queryByIdSql(Class entityClass, String id) throws PrimaryKeyNotFoundException {
-
-        String primaryKeyName = null;
-        FieldType primaryKeyType = null;
-        Field[] fields = entityClass.getDeclaredFields();
-        for (Field field : fields) {
-            ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
-            if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
-                primaryKeyName = field.getName();
-                primaryKeyType = field.getAnnotation(TypeAnno.class).type();
-            }
-        }
-        if (TextUtil.isEmpty(primaryKeyName)) {
-            throw new PrimaryKeyNotFoundException();
-        }
-
-        TableValue where = new TableValue(primaryKeyName, primaryKeyType, changer.encode(id));
-        return SqlUtil.querySql(entityClass.getSimpleName(), where);
-    }
-
-    public static String queryAllSql(Class entityClass) throws SQLException {
-        return SqlUtil.querySql(entityClass.getSimpleName(), new ArrayList<TableValue>());
-    }
-
-    public static String querySql(Class entityClass, String whereName, String whereValue,
-                                  boolean fuzzy) throws FieldNotFoundException {
-        FieldType whereType;
-        try {
-            whereType = entityClass.getDeclaredField(whereName).getAnnotation(TypeAnno.class).type();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new FieldNotFoundException(whereName);
-        }
-
-        TableValue where = new TableValue(whereName, whereType, changer.encode(whereValue));
-
-        String sql;
-        if (fuzzy) {
-            sql = SqlUtil.queryFuzzySql(entityClass.getSimpleName(), where, null, false);
-        } else {
-            sql = SqlUtil.querySql(entityClass.getSimpleName(), where);
-        }
-        return sql;
-    }
-
-    public static String querySql(Class entityClass, String whereName1, String whereValue1,
-                                  String whereName2, String whereValue2) throws FieldNotFoundException {
-        FieldType whereType1;
-        FieldType whereType2;
-        try {
-            whereType1 = entityClass.getDeclaredField(whereName1).getAnnotation(TypeAnno.class).type();
-            whereType2 = entityClass.getDeclaredField(whereName2).getAnnotation(TypeAnno.class).type();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new FieldNotFoundException(whereName1 + " or " + whereName2);
-        }
-
-        List<TableValue> whereList = new ArrayList<>();
-        whereList.add(new TableValue(whereName1, whereType1, changer.encode(whereValue1)));
-        whereList.add(new TableValue(whereName2, whereType2, changer.encode(whereValue2)));
-
-        String sql;
-        sql = SqlUtil.querySql(entityClass.getSimpleName(), whereList);
-        return sql;
-    }
-
     public static String insertSql(Object entity) {
 
         Field[] fields = entity.getClass().getDeclaredFields();
@@ -191,7 +128,7 @@ public class SqlEntityUtil {
                 continue;//插入时没必要设置主键
             }
 
-            FieldType type = typeAnno.type();
+            ValueType valueType = TableValue.toValueType(typeAnno.type());
             String value = "";
             field.setAccessible(true);
             try {
@@ -200,7 +137,7 @@ public class SqlEntityUtil {
                 e.printStackTrace();
             }
 
-            values.add(new TableValue(field.getName(), type, changer.encode(value)));
+            values.add(new TableValue(field.getName(), valueType, changer.encode(value)));
         }
 
         return SqlUtil.insertSql(entity.getClass().getSimpleName(), values);
@@ -208,7 +145,7 @@ public class SqlEntityUtil {
 
     public static String updateByIdSql(Object entity) {
         Field[] fields = entity.getClass().getDeclaredFields();
-        TableValue where = null;
+        Where where = new Where();
         List<TableValue> setValues = new ArrayList<>();
 
         for (Field field : fields) {
@@ -217,7 +154,7 @@ public class SqlEntityUtil {
             if (typeAnno == null) {
                 continue;
             }
-            FieldType type = typeAnno.type();
+            ValueType valueType = TableValue.toValueType(typeAnno.type());
 
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
@@ -228,7 +165,7 @@ public class SqlEntityUtil {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
-                where = new TableValue(field.getName(), type, changer.encode(whereValue));
+                where.add(field.getName(), changer.encode(whereValue), valueType);
 
             } else {
                 String setValue = "";
@@ -238,7 +175,7 @@ public class SqlEntityUtil {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
-                setValues.add(new TableValue(field.getName(), type, changer.encode(setValue)));
+                setValues.add(new TableValue(field.getName(), valueType, changer.encode(setValue)));
             }
 
         }
@@ -252,75 +189,135 @@ public class SqlEntityUtil {
 //        1.获取主键的名称和类型
         Field[] fields = entityClass.getDeclaredFields();
         String idName = null;
-        FieldType idType = null;
+        ValueType idValueType = null;
         for (Field field : fields) {
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
                 idName = field.getName();
-                idType = field.getAnnotation(TypeAnno.class).type();
+                idValueType = TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
                 break;
             }
         }
-        if (TextUtil.isEmpty(idName) || idType == null) {
+        if (TextUtil.isEmpty(idName) || idValueType == null) {
             throw new PrimaryKeyNotFoundException();
         }
 
-//        2.获取修改字段的类型        
-        FieldType setType;
+//        2.获取修改字段的类型
+        ValueType setValueType;
         try {
             Field field = entityClass.getDeclaredField(setName);
-            setType = field.getAnnotation(TypeAnno.class).type();
+            setValueType = TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
         } catch (Exception e) {
-            throw new FieldNotFoundException("setName");
+            throw new FieldNotFoundException(setName);
         }
 
 //        3.生成并返回sql语句
-        TableValue where = new TableValue(idName, idType, changer.encode(id));
-        TableValue tableValue = new TableValue(setName, setType, changer.encode(setValue));
-        return SqlUtil.updateSql(entityClass.getSimpleName(), tableValue, where);
+        TableValue tableValue = new TableValue(setName, setValueType, changer.encode(setValue));
+        Where where = new Where().add(idName, changer.encode(id), idValueType);
+        return SqlUtil.updateSql(entityClass.getSimpleName(), Collections.singletonList(tableValue),
+                where);
     }
 
     public static String deleteByIdSql(Class entityClass, String id) throws PrimaryKeyNotFoundException {
-
 //        1.获取主键的名称和类型
         Field[] fields = entityClass.getDeclaredFields();
         String idName = null;
-        FieldType idType = null;
+        ValueType idValueType = null;
         for (Field field : fields) {
             ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
             if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
                 idName = field.getName();
-                idType = field.getAnnotation(TypeAnno.class).type();
+                idValueType = TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
                 break;
             }
         }
-        if (TextUtil.isEmpty(idName) || idType == null) {
+        if (TextUtil.isEmpty(idName) || idValueType == null) {
             throw new PrimaryKeyNotFoundException();
         }
 
 //        2.生成并返回sql语句
-        TableValue where = new TableValue(idName, idType, changer.encode(id));
+        Where where = new Where().add(idName, changer.encode(id), idValueType);
         return SqlUtil.deleteSql(entityClass.getSimpleName(), where);
-    }
-
-    public static String deleteAllSql(Class entityClass) {
-        return SqlUtil.deleteSql(entityClass.getSimpleName(), new ArrayList<TableValue>());
     }
 
     public static String deleteSql(Class entityClass, String whereName, String whereValue)
             throws FieldNotFoundException {
-
 //        1.获取作为查询条件的字段的类型
-        FieldType whereType;
+        ValueType whereValueType;
         try {
             Field field = entityClass.getDeclaredField(whereName);
-            whereType = field.getAnnotation(TypeAnno.class).type();
+            whereValueType = TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
         } catch (Exception e) {
-            throw new FieldNotFoundException("whereName");
+            throw new FieldNotFoundException(whereName);
         }
 
-        TableValue where = new TableValue(whereName, whereType, changer.encode(whereValue));
+        Where where = new Where().add(whereName, changer.encode(whereValue), whereValueType);
         return SqlUtil.deleteSql(entityClass.getSimpleName(), where);
+    }
+
+    public static String deleteAllSql(Class entityClass) {
+        return SqlUtil.deleteSql(entityClass.getSimpleName(), null);
+    }
+
+    public static String queryByIdSql(Class entityClass, String id)
+            throws PrimaryKeyNotFoundException {
+        String primaryKeyName = null;
+        ValueType primaryKeyValueType = null;
+        Field[] fields = entityClass.getDeclaredFields();
+        for (Field field : fields) {
+            ConstraintAnno constraintAnno = field.getAnnotation(ConstraintAnno.class);
+            if (constraintAnno != null && constraintAnno.constraint() == Constraint.PRIMARY_KEY) {
+                primaryKeyName = field.getName();
+                primaryKeyValueType =
+                        TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
+            }
+        }
+        if (TextUtil.isEmpty(primaryKeyName)) {
+            throw new PrimaryKeyNotFoundException();
+        }
+
+        Where where = new Where().add(primaryKeyName, changer.encode(id), primaryKeyValueType);
+        return SqlUtil.querySql(entityClass.getSimpleName(), where);
+    }
+
+    public static String queryAllSql(Class entityClass) throws SQLException {
+        return SqlUtil.querySql(entityClass.getSimpleName(), null);
+    }
+
+    public static String querySql(Class entityClass, String whereName, String whereValue)
+            throws FieldNotFoundException {
+        ValueType whereValueType;
+        try {
+            Field field = entityClass.getDeclaredField(whereName);
+            whereValueType = TableValue.toValueType(field.getAnnotation(TypeAnno.class).type());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FieldNotFoundException(whereName);
+        }
+
+        Where where = new Where().add(whereName, changer.encode(whereValue), whereValueType);
+        return SqlUtil.querySql(entityClass.getSimpleName(), where);
+    }
+
+    public static String querySql(Class entityClass, String whereName1, String whereValue1,
+                                  String whereName2, String whereValue2)
+            throws FieldNotFoundException {
+        ValueType whereValueType1;
+        ValueType whereValueType2;
+        try {
+            Field field1 = entityClass.getDeclaredField(whereName1);
+            whereValueType1 = TableValue.toValueType(field1.getAnnotation(TypeAnno.class).type());
+            Field field2 = entityClass.getDeclaredField(whereName2);
+            whereValueType2 = TableValue.toValueType(field2.getAnnotation(TypeAnno.class).type());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FieldNotFoundException(whereName1 + " or " + whereName2);
+        }
+
+        Where where = new Where().
+                add(whereName1, changer.encode(whereValue1), whereValueType1).
+                add(whereName2, changer.encode(whereValue2), whereValueType2);
+        return SqlUtil.querySql(entityClass.getSimpleName(), where);
     }
 
 }

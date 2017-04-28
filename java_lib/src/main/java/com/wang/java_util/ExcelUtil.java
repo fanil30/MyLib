@@ -3,6 +3,7 @@ package com.wang.java_util;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 
 import jxl.Sheet;
 import jxl.Workbook;
@@ -15,7 +16,7 @@ public class ExcelUtil {
 
 //    pub static final String postName = "xls";
 
-    public static void excelOut(ArrayList objects, String excelPath) {
+    public static void excelOut(List objects, String excelPath) {
         WritableWorkbook workbook = null;
         try {
             workbook = Workbook.createWorkbook(new File(excelPath));
@@ -58,9 +59,9 @@ public class ExcelUtil {
 
     }
 
-    public static <T> ArrayList<T> excelIn(Class<T> entityClass, String excelPath) {
+    public static <T> List<T> excelIn(Class<T> entityClass, String excelPath) {
 
-        ArrayList<T> entities = new ArrayList<>();
+        List<T> entities = new ArrayList<>();
         Workbook workbook = null;
 
         try {

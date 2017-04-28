@@ -11,7 +11,7 @@ import java.util.List;
 public class GoodDao extends CustomDao {
 
     public List<com.wang.java_program.shopping_system.bean.Good> queryGoodListByShopId(int shopId) throws SQLException {
-        return query(com.wang.java_program.shopping_system.bean.Good.class, "shopId", shopId + "", false);
+        return query(com.wang.java_program.shopping_system.bean.Good.class, "shopId", shopId + "");
     }
 
     /**

@@ -24,13 +24,13 @@ public class GetGoodListByShopIdServlet extends CustomHttpServlet {
         return new String[]{"shopId"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         String shopId = (String) parameterMap.get("shopId");
 
         if (TextUtil.isEmpty(shopId)) {
-            response = new Response<>(StateCode.PARAM_ERROR, "shopId²»ÄÜÎª¿Õ");
+            response = new Response<>(StateCode.PARAM_ERROR, "shopIdï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½");
             return;
         }
 

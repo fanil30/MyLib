@@ -22,7 +22,7 @@ public class GetOrderListServlet extends CustomHttpServlet {
         return new String[]{"userId"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         int userId;
@@ -30,7 +30,7 @@ public class GetOrderListServlet extends CustomHttpServlet {
             userId = Integer.parseInt((String) parameterMap.get("userId"));
         } catch (Exception e) {
             e.printStackTrace();
-            response = new Response<>(StateCode.PARAM_ERROR, "²ÎÊý²»ºÏÀí");
+            response = new Response<>(StateCode.PARAM_ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             return;
         }
 

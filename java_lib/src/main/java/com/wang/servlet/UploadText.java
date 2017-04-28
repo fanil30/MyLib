@@ -24,7 +24,7 @@ public class UploadText extends CustomHttpServlet {
         return new String[]{"text"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         String text = (String) parameterMap.get("text");

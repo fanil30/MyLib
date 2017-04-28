@@ -20,7 +20,7 @@ public class AddOrderServlet extends CustomHttpServlet {
         return new String[]{"userId", "goodId", "count"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         int userId;
@@ -33,7 +33,7 @@ public class AddOrderServlet extends CustomHttpServlet {
             count = Integer.parseInt((String) parameterMap.get("count"));
         } catch (Exception e) {
             e.printStackTrace();
-            response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.PARAM_ERROR, "²ÎÊý²»ºÏÀí");
+            response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.PARAM_ERROR, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             return;
         }
 

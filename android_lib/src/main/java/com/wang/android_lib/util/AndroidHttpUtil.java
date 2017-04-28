@@ -211,11 +211,12 @@ public class AndroidHttpUtil {
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
-
-    public static final int NOT_CONNECT = 0;
-    public static final int NETTYPE_WIFI = 1;
-    public static final int NETTYPE_CMWAP = 2;
-    public static final int NETTYPE_CMNET = 3;
+    enum NetworkType {
+        NOT_CONNECT,
+        WIFI,
+        WAP,
+        NET
+    }
 
     /**
      * 获取当前网络类型
@@ -223,28 +224,28 @@ public class AndroidHttpUtil {
      *
      * @return 0：没有网络   1：WIFI网络   2：WAP网络    3：NET网络
      */
-    public int getNetworkType(Context context) {
-        int netType = NOT_CONNECT;
+    public NetworkType getNetworkType(Context context) {
+        NetworkType networkType = NetworkType.NOT_CONNECT;
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(
                 Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
         if (networkInfo == null) {
-            return netType;
+            return networkType;
         }
         int nType = networkInfo.getType();
         if (nType == ConnectivityManager.TYPE_MOBILE) {
             String extraInfo = networkInfo.getExtraInfo();
             if (!TextUtil.isEmpty(extraInfo)) {
                 if (extraInfo.toLowerCase().equals("cmnet")) {
-                    netType = NETTYPE_CMNET;
+                    networkType = NetworkType.NET;
                 } else {
-                    netType = NETTYPE_CMWAP;
+                    networkType = NetworkType.WAP;
                 }
             }
         } else if (nType == ConnectivityManager.TYPE_WIFI) {
-            netType = NETTYPE_WIFI;
+            networkType = NetworkType.WIFI;
         }
-        return netType;
+        return networkType;
     }
 
 }

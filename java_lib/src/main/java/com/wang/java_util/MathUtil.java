@@ -197,7 +197,7 @@ public class MathUtil {
     }
 
     /**
-     * 得到left至right范围内的多个不重复随机整数（包括left和right）。
+     * 得到left至right范围内的n个不重复随机整数（包括left和right）。
      *
      * @return 当left>right或n过大时返回null。
      */

@@ -22,7 +22,7 @@ public class QueryLatest extends CustomHttpServlet {
         return new String[]{"appName"};
     }
 
-    @Override
+//    @Override
     protected void onGetParameterFinish(HashMap parameterMap) {
 
         try {

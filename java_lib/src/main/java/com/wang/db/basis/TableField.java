@@ -43,13 +43,11 @@ public class TableField {
      */
     public TableField defaultValue(TableValue defaultValue) {
         switch (defaultValue.type) {
-            case VARCHAR_10:
-            case VARCHAR_20:
-            case VARCHAR_50:
-            case VARCHAR_100:
-            case VARCHAR_500:
             case TEXT:
                 defaultValue.value = "'" + defaultValue.value + "'";
+                break;
+            case INT:
+            case DOUBLE:
                 break;
         }
         this.defaultValue = defaultValue;

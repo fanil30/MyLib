@@ -79,6 +79,20 @@ public class SqliteUtil {
     }
 
     /**
+     * 获取select count(*) from tableName where ... 的结果
+     */
+    public static int getCount(Cursor cursor) throws SQLException {
+        if (cursor == null) {
+            throw new SQLException("cursor is null");
+        }
+        if (cursor.moveToNext()) {
+            return cursor.getInt(0);
+        } else {
+            throw new SQLException("count not exists");
+        }
+    }
+
+    /**
      * 返回sqlite数据库最新的自增id
      */
     public static int getLatestAutoIncrementPrimaryKey(Class entityClass, SQLiteDatabase db)

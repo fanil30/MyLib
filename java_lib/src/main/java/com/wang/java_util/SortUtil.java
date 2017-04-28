@@ -16,9 +16,12 @@ public class SortUtil {
      * @param desc      是否从大到小
      * @return 返回新的数组，原数组不受影响
      */
-    public static <T> List<T> sortChina(ArrayList<T> entityList, String sortField, boolean desc) {
+    public static <T> List<T> sortChina(List<T> entityList, String sortField, boolean desc) {
 
-        ArrayList<T> newEntityList = (ArrayList<T>) entityList.clone();
+        List<T> newEntityList = new ArrayList<>();
+        for (T entity : entityList) {
+            newEntityList.add(entity);
+        }
 
         int len = newEntityList.size();
         for (int i = 0; i < len - 1; i++) {
@@ -57,46 +60,5 @@ public class SortUtil {
             return 0;
         }
     }
-
-    public static void sortBubble() {
-
-        int[] a = {1, 4, 7, 2, 5, 6, 3, 9, 0, 8};
-        int len = a.length;
-        for (int i = 0; i < len - 1; i++) {
-            for (int j = 0; j < len - i - 1; j++) {
-                if (a[j] > a[j + 1]) {
-                    int temp = a[j];
-                    a[j] = a[j + 1];
-                    a[j + 1] = temp;
-                }
-            }
-        }
-        for (int i : a) {
-            System.out.println(i);
-        }
-    }
-
-    public static void sortSelect() {
-
-        int[] a = {1, 4, 7, 2, 5, 6, 3, 9, 0, 8};
-        int len = a.length;
-        for (int i = 0; i < len - 1; i++) {
-            int k = i;
-            for (int j = i + 1; j < len; j++) {
-                if (a[k] > a[j]) {
-                    k = j;
-                }
-            }
-            if (k != i) {
-                int temp = a[i];
-                a[i] = a[k];
-                a[k] = temp;
-            }
-        }
-        for (int i : a) {
-            System.out.println(i);
-        }
-    }
-
 
 }

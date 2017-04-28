@@ -13,7 +13,7 @@ public class GoodImageDao extends CustomDao {
      * 根据商品id查询该商品的所有图片
      */
     public List<GoodImage> query(int goodId) throws SQLException {
-        return query(GoodImage.class, "goodId", goodId + "", false);
+        return query(GoodImage.class, "goodId", goodId + "");
     }
 
 }

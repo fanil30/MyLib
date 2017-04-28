@@ -1,6 +1,7 @@
 package com.wang.db;
 
 import com.wang.db.basis.DbType;
+import com.wang.db.basis.TypeAnno;
 import com.wang.java_util.DebugUtil;
 import com.wang.db.connection.DbHelper;
 
@@ -19,7 +20,7 @@ import java.util.List;
 public class Dao {
 
     protected DbHelper dbHelper;
-    protected boolean printSql = false;
+    public boolean printSql = false;
 
     public Dao(DbHelper dbHelper) {
         this.dbHelper = dbHelper;
@@ -96,11 +97,10 @@ public class Dao {
      *
      * @param whereName  查询条件的字段名称
      * @param whereValue 查询条件的字段值，可以为整型，浮点型，字符串等
-     * @param fuzzy      是否进行模糊查询
      */
-    public <T> List<T> query(Class<T> entityClass, String whereName, String whereValue, boolean fuzzy)
+    public <T> List<T> query(Class<T> entityClass, String whereName, String whereValue)
             throws SQLException {
-        String sql = SqlEntityUtil.querySql(entityClass, whereName, whereValue, fuzzy);
+        String sql = SqlEntityUtil.querySql(entityClass, whereName, whereValue);
         printSql(sql);
         return executeQuery(entityClass, sql);
     }
@@ -141,17 +141,15 @@ public class Dao {
 
         String sql = SqlEntityUtil.insertSql(entity);
         printSql(sql);
-        Connection conn = dbHelper.getConnection();
 
         if (dbHelper.getDbType() == DbType.SQLITE) {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = dbHelper.getConnection().prepareStatement(sql);
             ps.executeUpdate();
             ps.close();
-//            conn.close();
-//            dbHelper.close();
+            dbHelper.close();
             return 0;
         } else {
-            return executeInsert(conn, sql);
+            return executeInsert(sql);
         }
 
     }
@@ -207,17 +205,16 @@ public class Dao {
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.execute();
         ps.close();
-//        dbHelper.close(conn, ps);
+        dbHelper.close();
     }
 
     public <T> List<T> executeQuery(Class<T> entityClass, String sql) throws SQLException {
-        Connection conn = dbHelper.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
+        PreparedStatement ps = dbHelper.getConnection().prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         List<T> entityList = getResult(entityClass, rs);
-        ps.close();
         rs.close();
-//        dbHelper.close(conn, ps, rs);
+        ps.close();
+        dbHelper.close();
         return entityList;
     }
 
@@ -234,6 +231,9 @@ public class Dao {
                 throw new SQLException(e.toString());
             }
             for (Field field : fields) {
+                if (field.getAnnotation(TypeAnno.class) == null) {
+                    continue;
+                }
                 field.setAccessible(true);
                 Object object = rs.getObject(field.getName());
                 try {
@@ -248,22 +248,38 @@ public class Dao {
     }
 
     /**
+     * 获取select count(*)的结果
+     */
+    public static int getCount(ResultSet rs) throws SQLException {
+        if (rs == null) {
+            throw new SQLException("ResultSet is null");
+        }
+        if (rs.next()) {
+            return rs.getInt(1);
+        } else {
+            throw new SQLException("count not exists");
+        }
+    }
+
+    /**
      * 执行插入的sql语句
      *
      * @return 返回自增主键的id值
      */
-    public int executeInsert(Connection conn, String sql) throws SQLException {
-        PreparedStatement ps = conn.prepareStatement(sql);
+    public int executeInsert(String sql) throws SQLException {
+        PreparedStatement ps = dbHelper.getConnection().prepareStatement(sql);
         ps.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = ps.getGeneratedKeys();
         if (rs.next()) {
             long i = (long) rs.getObject(1);
             rs.close();
             ps.close();
+            dbHelper.close();
             return (int) i;
         } else {
             rs.close();
             ps.close();
+            dbHelper.close();
             throw new SQLException(sql + "\nfailed to get id after insert");
         }
     }
@@ -273,7 +289,7 @@ public class Dao {
         PreparedStatement ps = conn.prepareStatement(sql);
         int count = ps.executeUpdate();
         ps.close();
-//        dbHelper.close(conn, ps);
+        dbHelper.close();
         return count;
     }
 

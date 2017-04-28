@@ -14,7 +14,7 @@ public class UserDao extends CustomDao {
      * 根据手机号，密码查询用户，用于登录时验证用户
      */
     public User query(String phone, String password) throws SQLException {
-        List<User> userList = super.query(User.class, "phone", phone, false);
+        List<User> userList = super.query(User.class, "phone", phone);
         if (userList == null || userList.size() == 0) {
             return null;
         }
@@ -29,7 +29,7 @@ public class UserDao extends CustomDao {
      * 根据手机号查询用户，用于注册时判断用户是否已存在
      */
     public User query(String phone) throws SQLException {
-        List<User> userList = super.query(User.class, "phone", phone, false);
+        List<User> userList = super.query(User.class, "phone", phone);
         if (userList == null || userList.size() == 0) {
             return null;
         }

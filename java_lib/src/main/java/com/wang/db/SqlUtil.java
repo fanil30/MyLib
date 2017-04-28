@@ -2,12 +2,13 @@ package com.wang.db;
 
 import com.wang.db.basis.Action;
 import com.wang.db.basis.DbType;
+import com.wang.db.basis.FieldType;
 import com.wang.db.basis.TableField;
 import com.wang.db.basis.TableValue;
-import com.wang.db.basis.FieldType;
+import com.wang.db.basis.ValueType;
+import com.wang.db.basis.Where;
 import com.wang.java_util.TextUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class SqlUtil {
         for (int i = 0; i < tableFields.size(); i++) {
             TableField field = tableFields.get(i);
             String s = field.name + " " +
-                    FieldType.toFieldTypeString(dbType, field.type) +
+                    toFieldTypeString(dbType, field.type) +
                     (field.unsigned ? " unsigned" : "") +
                     (field.primaryKey ? " primary key auto_increment" : "") +
                     ((!field.primaryKey && field.notNull) ? " not null" : "") +
@@ -48,6 +49,10 @@ public class SqlUtil {
 
     }
 
+    public static String dropTableSql(String tableName) {
+        return "drop table if exists " + tableName + ";";
+    }
+
     public static String getLatestAutoIncrementNumberSql(String tableName, String primaryKeyName) {
         //第一种方法：select last_insert_rowid()，暂时不知执行sql后怎么在Cursor中获取结果。
         //第二种方法：select max(ID) from 表名
@@ -61,8 +66,6 @@ public class SqlUtil {
                                        Action onDeleteAction,
                                        Action onUpdateAction) {
 
-//        String sss = "ALTER TABLE `orders` ADD FOREIGN KEY (`userId`) REFERENCES `user` (`userId`) " +
-//                "ON DELETE CASCADE ON UPDATE SET NULL;";
         String sql = "alter table " + mainTableName + " add foreign key (" + mainFieldName + ") " +
                 "references " + referenceTableName + "(" + referenceFieldName + ") ";
 
@@ -118,23 +121,15 @@ public class SqlUtil {
             nameList += tv.name + (i < tableValues.size() - 1 ? "," : ")");
 
             switch (tv.type) {
-                case TINYINT:
                 case INT:
                     valueList += Integer.parseInt(tv.value + "");
                     break;
                 case DOUBLE:
                     valueList += Double.parseDouble(tv.value + "");
                     break;
-                case VARCHAR_10:
-                case VARCHAR_20:
-                case VARCHAR_50:
-                case VARCHAR_100:
-                case VARCHAR_500:
                 case TEXT:
                     //一定要进行特殊字符'和\的转义，否则sql语法出错！！！
                     valueList += "'" + toCorrectValue(tv.value) + "'";
-                    break;
-                case EXTRA:
                     break;
             }
 
@@ -156,84 +151,43 @@ public class SqlUtil {
     /**
      * 生成删除语句 - 具体实现
      */
-    public static String deleteSql(String tableName, List<TableValue> wheres) {
+    public static String deleteSql(String tableName, Where where) {
         String sql = "delete from " + tableName;
-        if (wheres == null || wheres.size() == 0) {
-            return sql + ";";
-        } else {
-            sql += " where " + getExpressionList(wheres, " and ");
+        if (where != null && where.size() > 0) {
+            sql += " " + toWhereString(where);
         }
-
         sql += ";";
         return sql;
     }
 
     /**
-     * 生成删除语句 - 接口实现
-     */
-    public static String deleteSql(String tableName, TableValue where) {
-        List<TableValue> wheres = new ArrayList<>();
-        wheres.add(where);
-        return deleteSql(tableName, wheres);
-    }
-
-    /**
      * 生成更新语句 - 具体实现
      */
-    public static String updateSql(String tableName, List<TableValue> setValues,
-                                   List<TableValue> wheres) {
+    public static String updateSql(String tableName, List<TableValue> setValues, Where where) {
         String sql = "update " + tableName + " set ";
         sql += getExpressionList(setValues, ",");
-        sql += " where " + getExpressionList(wheres, " and ") + ";";
+        if (where != null && where.size() > 0) {
+            sql += " " + toWhereString(where);
+        }
+        sql += ";";
         return sql;
-    }
-
-    /**
-     * 生成更新语句 - 接口实现1
-     */
-    public static String updateSql(String tableName, TableValue setValue,
-                                   List<TableValue> wheres) {
-        List<TableValue> setValues = new ArrayList<>();
-        setValues.add(setValue);
-        return updateSql(tableName, setValues, wheres);
-    }
-
-    /**
-     * 生成更新语句 - 接口实现2
-     */
-    public static String updateSql(String tableName, List<TableValue> setValues,
-                                   TableValue where) {
-        List<TableValue> wheres = new ArrayList<>();
-        wheres.add(where);
-        return updateSql(tableName, setValues, wheres);
-    }
-
-    /**
-     * 生成更新语句 - 接口实现3
-     */
-    public static String updateSql(String tableName, TableValue setValue, TableValue where) {
-        List<TableValue> wheres = new ArrayList<>();
-        wheres.add(where);
-        List<TableValue> setValues = new ArrayList<>();
-        setValues.add(setValue);
-        return updateSql(tableName, setValues, wheres);
     }
 
     /**
      * 生成查询语句 - 具体实现
      *
      * @param tableName   数据表名字
-     * @param whereList   查询条件的列表，若为空或长度为0，则查询所有记录
+     * @param where       查询条件，若为空或长度为0，则查询所有记录
      * @param orderByList 排序字段的列表（字段名字前加负号"-"，则为倒序，否则正序）
      * @param begin       分页的起始（begin或length为空则不分页）
      * @param length      分页的长度
-     *                    // TODO 添加模糊查询功能
      */
-    public static String querySql(String tableName, List<TableValue> whereList,
-                                  List<String> orderByList, Integer begin, Integer length) {
+    public static String querySql(String tableName, Where where, List<String> orderByList,
+                                  Integer begin, Integer length) {
         String sql = "select * from " + tableName;
-        if (whereList != null && whereList.size() != 0) {
-            sql += " where " + getExpressionList(whereList, " and ");
+
+        if (where != null && where.size() > 0) {
+            sql += " " + toWhereString(where);
         }
 
         if (orderByList != null && orderByList.size() != 0) {
@@ -262,36 +216,126 @@ public class SqlUtil {
     /**
      * 生成查询语句 - 接口实现1
      */
-    public static String querySql(String tableName, List<TableValue> whereList) {
-        return querySql(tableName, whereList, null, null, null);
+    public static String querySql(String tableName, Where where, List<String> orderByList) {
+        return querySql(tableName, where, orderByList, null, null);
     }
 
     /**
      * 生成查询语句 - 接口实现2
      */
-    public static String querySql(String tableName, TableValue where) {
-        List<TableValue> whereList = new ArrayList<>();
-        whereList.add(where);
-        return querySql(tableName, whereList);
+    public static String querySql(String tableName, Where where) {
+        return querySql(tableName, where, null, null, null);
     }
 
     /**
-     * 生成模糊查询语句 - 具体实现
-     * // TODO 把模糊查询功能合并到上方第一个querySql方法中
+     * 生成模糊查询语句，匹配符：%whereValue%
      */
-    public static String queryFuzzySql(String tableName, TableValue where,
-                                       String orderBy, boolean orderDesc) {
-        String sql = "select * from " + tableName;
-        sql += " where " + where.name + " like '%" + where.value + "%'";
+    public static String queryFuzzySql(String tableName, String whereName, String whereValue,
+                                       List<String> orderByList) {
+        whereValue = "%" + whereValue + "%";
+        Where where = new Where().add(whereName, whereValue, ValueType.TEXT, Where.QueryMode.LIKE);
+        return querySql(tableName, where, orderByList, null, null);
+    }
 
-        if (!TextUtil.isEmpty(orderBy)) {
-            sql += " order by " + orderBy;
-            if (orderDesc) {
-                sql += " desc";
-            }
+    public static String queryCountSql(String tableName, Where where) {
+        String sql = "select count(*) from " + tableName;
+        if (where != null && where.size() > 0) {
+            sql += " " + toWhereString(where);
         }
         sql += ";";
         return sql;
+    }
+
+    /**
+     * @return where username='wang' and password='123' or gender=1 or nickname like '%abc%'
+     */
+    private static String toWhereString(Where where) {
+        if (where == null || where.size() == 0) {
+            return "";
+        }
+
+        String sql = "where ";
+        for (int i = 0; i < where.size(); i++) {
+            Where.Equation equation = where.get(i);
+            // 1.字段名字
+            sql += equation.name;
+            // 2.查询模式
+            switch (equation.queryMode) {
+                case EQUAL:
+                    sql += "=";
+                    break;
+                case NOT_EQUAL:
+                    sql += "!=";
+                    break;
+                case LIKE:
+                    sql += " like ";
+                    break;
+            }
+            // 3.赋值
+            switch (equation.valueType) {
+                case INT:
+                case DOUBLE:
+                    sql += equation.value;
+                    break;
+                case TEXT:
+                    sql += "'" + equation.value + "'";
+                    break;
+            }
+            // 4.如果不是最后一个查询条件，添加查询逻辑
+            if (i < where.size() - 1) {
+                switch (equation.queryLogic) {
+                    case AND:
+                        sql += " and ";
+                        break;
+                    case OR:
+                        sql += " or ";
+                        break;
+                }
+            }
+        }
+        return sql;
+    }
+
+    private static String toFieldTypeString(DbType dbType, FieldType type) {
+        String strType = "";
+        switch (type) {
+            case TINYINT:
+                strType = "tinyint";
+                break;
+            case INT:
+                if (dbType == DbType.MYSQL) {
+                    strType = "int";
+                } else if (dbType == DbType.SQLITE) {
+                    strType = "integer";
+                }
+                break;
+            case DOUBLE:
+                if (dbType == DbType.MYSQL) {
+                    strType = "double";
+                } else if (dbType == DbType.SQLITE) {
+                    strType = "real";
+                }
+                break;
+            case VARCHAR_10:
+                strType = "varchar(10)";
+                break;
+            case VARCHAR_20:
+                strType = "varchar(20)";
+                break;
+            case VARCHAR_50:
+                strType = "varchar(50)";
+                break;
+            case VARCHAR_100:
+                strType = "varchar(100)";
+                break;
+            case VARCHAR_500:
+                strType = "varchar(500)";
+                break;
+            case TEXT:
+                strType = "text";
+                break;
+        }
+        return strType;
     }
 
     /**
@@ -304,22 +348,14 @@ public class SqlUtil {
             TableValue tv = tableValues.get(i);
             String value = "";
             switch (tv.type) {
-                case TINYINT:
                 case INT:
                     value += Integer.parseInt(tv.value + "");
                     break;
                 case DOUBLE:
                     value += Double.parseDouble(tv.value + "");
                     break;
-                case VARCHAR_10:
-                case VARCHAR_20:
-                case VARCHAR_50:
-                case VARCHAR_100:
-                case VARCHAR_500:
                 case TEXT:
                     value += "'" + tv.value + "'";
-                    break;
-                case EXTRA:
                     break;
             }
             expressionList += tv.name + "=" + value + (i < tableValues.size() - 1 ? separator : "");
@@ -330,12 +366,12 @@ public class SqlUtil {
 
     /**
      * 对插入、查询等需要用到的value的特殊字符进行转义
-     * <p/>
+     * <p>
      * 1.若出现单引号，进行转义
-     * <p/>
+     * <p>
      * 2.末尾若出现转义字符，进行二次转义
      */
-    public static String toCorrectValue(String value) {
+    private static String toCorrectValue(String value) {
         value = value.replaceAll("'", "\\'");
         if (value.endsWith("\\")) {
             value = value + "\\";
