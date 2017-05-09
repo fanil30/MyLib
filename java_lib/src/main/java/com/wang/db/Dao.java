@@ -17,16 +17,19 @@ import java.util.List;
 /**
  * 拥有已经实现好的万能增删查改等方法的类
  */
-public class Dao {
+public abstract class Dao<T> {
 
     protected DbHelper dbHelper;
-    public boolean printSql = false;
 
     public Dao(DbHelper dbHelper) {
         this.dbHelper = dbHelper;
         SqlUtil.dbType = dbHelper.getDbType();
         SqlEntityUtil.dbType = dbHelper.getDbType();
     }
+
+    protected abstract Class<T> getEntityClass();
+
+    protected abstract boolean isPrintSql();
 
     /**
      * 根据entityClass创建数据表，字段属性为可空。只支持int，double，String三种数据类型，
@@ -46,6 +49,10 @@ public class Dao {
         execute(createTableSql);
     }
 
+    public void createTable() throws SQLException {
+        createTable(getEntityClass());
+    }
+
     /**
      * 创建某个表的外键（最好先创建好所有表）
      */
@@ -55,6 +62,10 @@ public class Dao {
             printSql(sql);
             execute(sql);
         }
+    }
+
+    public void createReferences() throws SQLException {
+        createReferences(getEntityClass());
     }
 
     /**
@@ -68,8 +79,8 @@ public class Dao {
      * <p/>
      * 3.数据表所有字段与entity类对应成员变量名相同。
      */
-    public <T> T queryById(Class<T> entityClass, String id) throws SQLException {
-
+    public T queryById(String id) throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.queryByIdSql(entityClass, id);
         printSql(sql);
         List<T> entityList = executeQuery(entityClass, sql);
@@ -98,8 +109,9 @@ public class Dao {
      * @param whereName  查询条件的字段名称
      * @param whereValue 查询条件的字段值，可以为整型，浮点型，字符串等
      */
-    public <T> List<T> query(Class<T> entityClass, String whereName, String whereValue)
+    public List<T> query(String whereName, String whereValue)
             throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.querySql(entityClass, whereName, whereValue);
         printSql(sql);
         return executeQuery(entityClass, sql);
@@ -116,7 +128,8 @@ public class Dao {
      * <p/>
      * 3.数据表所有字段与entity类对应成员变量名相同。
      */
-    public <T> List<T> queryAll(Class<T> entityClass) throws SQLException {
+    public List<T> queryAll() throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.queryAllSql(entityClass);
         printSql(sql);
         return executeQuery(entityClass, sql);
@@ -137,7 +150,7 @@ public class Dao {
      *
      * @return 返回插入后自增的主键id
      */
-    public synchronized int insert(Object entity) throws SQLException {
+    public synchronized int insert(T entity) throws SQLException {
 
         String sql = SqlEntityUtil.insertSql(entity);
         printSql(sql);
@@ -159,7 +172,7 @@ public class Dao {
      *
      * @return 成功修改的记录数目
      */
-    public synchronized int updateById(Object entity) throws SQLException {
+    public synchronized int updateById(T entity) throws SQLException {
         String sql = SqlEntityUtil.updateByIdSql(entity);
         printSql(sql);
         return executeUpdate(sql);
@@ -170,8 +183,9 @@ public class Dao {
      *
      * @return 成功修改的记录数目
      */
-    public synchronized int update(Class entityClass, String id, String setName, String setValue)
+    public synchronized int update(String id, String setName, String setValue)
             throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.updateSql(entityClass, id, setName, setValue);
         printSql(sql);
         return executeUpdate(sql);
@@ -182,7 +196,8 @@ public class Dao {
      *
      * @return 成功删除的记录数目
      */
-    public synchronized int deleteById(Class entityClass, String id) throws SQLException {
+    public synchronized int deleteById(String id) throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.deleteByIdSql(entityClass, id);
         printSql(sql);
         return executeUpdate(sql);
@@ -193,8 +208,9 @@ public class Dao {
      *
      * @return 成功删除的记录数目
      */
-    public synchronized int delete(Class entityClass, String whereName, String whereValue)
+    public synchronized int delete(String whereName, String whereValue)
             throws SQLException {
+        Class<T> entityClass = getEntityClass();
         String sql = SqlEntityUtil.deleteSql(entityClass, whereName, whereValue);
         printSql(sql);
         return executeUpdate(sql);
@@ -208,7 +224,7 @@ public class Dao {
         dbHelper.close();
     }
 
-    public <T> List<T> executeQuery(Class<T> entityClass, String sql) throws SQLException {
+    public List<T> executeQuery(Class<T> entityClass, String sql) throws SQLException {
         PreparedStatement ps = dbHelper.getConnection().prepareStatement(sql);
         ResultSet rs = ps.executeQuery();
         List<T> entityList = getResult(entityClass, rs);
@@ -293,8 +309,12 @@ public class Dao {
         return count;
     }
 
+    public Connection getConnection() throws SQLException {
+        return dbHelper.getConnection();
+    }
+
     private void printSql(String sql) {
-        if (printSql) {
+        if (isPrintSql()) {
             System.out.println(DebugUtil.getDebugMessage(sql + "\n", 2));
         }
     }

@@ -90,6 +90,9 @@ public class ConfigUtil {
 
                         } else if (field.getType().getSimpleName().contains("String")) {
                             field.set(configClass, value);
+
+                        } else if (field.getType().getSimpleName().contains("boolean")) {
+                            field.set(configClass, Boolean.valueOf(value));
                         }
                     }
                 }

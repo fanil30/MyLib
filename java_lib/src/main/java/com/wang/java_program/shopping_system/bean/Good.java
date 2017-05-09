@@ -31,7 +31,7 @@ public class Good {
 
     @TypeAnno(type = FieldType.DOUBLE)
     @ConstraintAnno(constraint = Constraint.NOT_NULL)
-    private int price;
+    private double price;
 
     public Good() {
     }
@@ -75,11 +75,11 @@ public class Good {
         this.description = description;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 }

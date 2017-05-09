@@ -2,6 +2,7 @@ package com.wang.java_util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,6 +12,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 public class FileUtil {
 
@@ -201,6 +204,56 @@ public class FileUtil {
 
     public static boolean mkdirs(String parentDir, String dirName) {
         return new File(parentDir, dirName).mkdirs();
+    }
+
+    /**
+     * 递归获取指定目录下所有符合要求的文件和文件夹
+     */
+    public static void findChildrenUnderDir(File file, List<File> fileList, FileFilter filter) {
+        if (!file.exists()) {
+            return;
+        }
+
+        if (fileList == null) {
+            fileList = new ArrayList<>();
+        }
+
+        if (filter.accept(file)) {
+            fileList.add(file);
+        }
+
+        File[] fileUnderCurrentDirList = file.listFiles();
+        if (fileUnderCurrentDirList != null) {
+            for (File fileUnderCurrentDir : fileUnderCurrentDirList) {
+                findChildrenUnderDir(fileUnderCurrentDir, fileList, filter);
+            }
+        }
+
+    }
+
+    /**
+     * 迭代获取指定目录下所有符合要求的文件和文件夹
+     */
+    public static List<File> findChildrenUnderDir(File rootFile, FileFilter filter) {
+        if (rootFile == null || !rootFile.exists()) {
+            return null;
+        }
+        List<File> fileList = new ArrayList<>();
+        Stack<File> stack = new Stack<>();
+        stack.push(rootFile);
+        while (!stack.empty()) {
+            File currentFile = stack.pop();
+            if (filter.accept(currentFile)) {
+                fileList.add(currentFile);
+            }
+            File[] files = currentFile.listFiles();
+            if (files != null) {
+                for (int i = files.length - 1; i >= 0; i--) {
+                    stack.push(files[i]);
+                }
+            }
+        }
+        return fileList;
     }
 
 }

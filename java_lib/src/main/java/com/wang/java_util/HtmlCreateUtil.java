@@ -1,5 +1,14 @@
 package com.wang.java_util;
 
+import com.wang.db.Dao;
+import com.wang.db.SqlEntityUtil;
+import com.wang.db.basis.TypeAnno;
+
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,6 +121,51 @@ public class HtmlCreateUtil {
         }
 
         return headHtml + html + footHtml;
+    }
+
+    public static HtmlCreateUtil.Table createHtmlTable(Class entityClass, Connection conn) {
+        List<String> headList = new ArrayList<>();
+        List<List<String>> rowList = new ArrayList<>();
+
+        try {
+            List<String> fieldNameList = new ArrayList<>();
+            Field[] fieldList = entityClass.getDeclaredFields();
+            for (Field field : fieldList) {
+                if (field.getAnnotation(TypeAnno.class) != null) {
+                    fieldNameList.add(field.getName());
+                }
+            }
+
+            String sql = SqlEntityUtil.queryAllSql(entityClass);
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            List entityList = Dao.getResult(entityClass, rs);
+            rs.close();
+            ps.close();
+
+            headList = fieldNameList;
+
+            for (int i = 0; i < entityList.size(); i++) {
+                List<String> row = new ArrayList<>();
+                Object entity = entityList.get(i);
+                for (int j = 0; j < fieldNameList.size(); j++) {
+                    try {
+                        Field field = entityClass.getDeclaredField(fieldNameList.get(j));
+                        field.setAccessible(true);
+                        Object value = field.get(entity);
+                        row.add(value + "");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                rowList.add(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return new HtmlCreateUtil.Table(entityClass.getSimpleName(), headList, rowList);
     }
 
 }

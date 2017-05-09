@@ -30,19 +30,6 @@ public class TextUtil {
     }
 
     /**
-     * @param text 输入带一个或多个小数点的字符串，如文件名，包名
-     * @return 返回最后一个小数点后面的字符串。若无小数点，返回text
-     */
-    public static String getTextAfterLastPoint(String text) {
-        try {
-            String[] s = text.split("[.]");
-            return s[s.length - 1];
-        } catch (Exception e) {
-            return text;
-        }
-    }
-
-    /**
      * @param postName true:返回后缀（不含点） false：返回前缀（不含点）
      */
     public static String parseFileName(String fileName, boolean postName) {
@@ -56,6 +43,19 @@ public class TextUtil {
 
         } catch (Exception e) {
             return fileName;
+        }
+    }
+
+    /**
+     * @param text 输入带一个或多个小数点的字符串，如文件名，包名
+     * @return 返回最后一个小数点后面的字符串。若无小数点，返回text
+     */
+    public static String getTextAfterLastPoint(String text) {
+        try {
+            String[] s = text.split("[.]");
+            return s[s.length - 1];
+        } catch (Exception e) {
+            return text;
         }
     }
 
@@ -86,6 +86,18 @@ public class TextUtil {
         try {
             String[] s = text.split("[\\\\/]");
             return text.replace(s[s.length - 1], "");
+        } catch (Exception e) {
+            return text;
+        }
+    }
+
+    /**
+     * @return 例如：E:\\files.abc\\a.txt 转换为 E:\\files.abc\\a
+     */
+    public static String getTextExceptLastPoint(String text) {
+        try {
+            String[] s = text.split("[.]");
+            return text.replace("." + s[s.length - 1], "");
         } catch (Exception e) {
             return text;
         }

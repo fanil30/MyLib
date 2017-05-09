@@ -4,7 +4,7 @@ import com.wang.java_util.GsonUtil;
 import com.wang.java_program.shopping_system.Response;
 import com.wang.java_program.shopping_system.StateCode;
 import com.wang.java_program.shopping_system.bean.Orders;
-import com.wang.java_program.shopping_system.dao.OrderDao;
+import com.wang.java_program.shopping_system.dao.OrdersDao;
 import com.wang.web.CustomHttpServlet;
 
 import java.util.HashMap;
@@ -35,7 +35,7 @@ public class GetOrderListServlet extends CustomHttpServlet {
         }
 
         try {
-            List<Orders> orderList = new OrderDao().query(userId);
+            List<Orders> orderList = new OrdersDao().query(userId);
             response = new Response<>(StateCode.OK, null, orderList);
         } catch (Exception e) {
             e.printStackTrace();

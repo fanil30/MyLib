@@ -1,5 +1,8 @@
 package com.wang.java_util;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,19 @@ public class MathUtil {
         DebugUtil.println(a + " ^ " + b + " % " + m + " = " + result);
 
         return result;
+    }
+
+    public static long indexModule(long a, long b, long m) {
+        return indexModule(
+                BigInteger.valueOf(a),
+                BigInteger.valueOf(b),
+                BigInteger.valueOf(m)
+        ).longValue();
+    }
+
+    @Test
+    public void testIndexModule() {
+        Assert.assertEquals(5, indexModule(26, 7, 33));
     }
 
     /**

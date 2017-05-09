@@ -32,7 +32,7 @@ public class LoginServlet extends CustomHttpServlet {
 
         try {
             com.wang.java_program.shopping_system.dao.UserDao userDao = new com.wang.java_program.shopping_system.dao.UserDao();
-            com.wang.java_program.shopping_system.bean.User user = userDao.query(phone, password);
+            com.wang.java_program.shopping_system.bean.User user = userDao.queryLogin(phone, password);
             if (user != null) {
                 response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.OK, user, null);
             } else {

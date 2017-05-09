@@ -1,5 +1,6 @@
 package com.wang.java_program.shopping_system.servlet;
 
+import com.wang.java_program.shopping_system.dao.OrdersDao;
 import com.wang.java_util.DateUtil;
 import com.wang.java_util.GsonUtil;
 import com.wang.java_program.shopping_system.bean.Orders;
@@ -39,7 +40,7 @@ public class AddOrderServlet extends CustomHttpServlet {
 
         try {
             com.wang.java_program.shopping_system.bean.Orders order = new com.wang.java_program.shopping_system.bean.Orders(userId, goodId, count, DateUtil.getCurrentDate());
-            int orderId = new com.wang.java_program.shopping_system.dao.OrderDao().insert(order);
+            int orderId = new OrdersDao().insert(order);
             order.setOrderId(orderId);
             response = new com.wang.java_program.shopping_system.Response<>(com.wang.java_program.shopping_system.StateCode.OK, order, null);
         } catch (Exception e) {
