@@ -5,7 +5,7 @@ import com.wang.java_util.CharsetUtil;
 import com.wang.java_util.DebugUtil;
 import com.wang.java_util.FileUtil;
 import com.wang.java_util.TextUtil;
-import com.wang.json_result.JsonResult;
+import com.wang.web.JsonResult;
 import com.wang.web.CustomHttpServlet;
 import com.wang.web.WebUtil;
 

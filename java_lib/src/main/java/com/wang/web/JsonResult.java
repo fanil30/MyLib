@@ -1,4 +1,4 @@
-package com.wang.json_result;
+package com.wang.web;
 
 /**
  * Created by Administrator on 2016/3/9.

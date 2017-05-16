@@ -3,7 +3,7 @@ package com.wang.android_lib.util;
 import android.graphics.Bitmap;
 import android.widget.ImageView;
 
-import com.wang.java_util.Pair;
+import com.wang.data_structure.Pair;
 
 import java.io.ByteArrayOutputStream;
 

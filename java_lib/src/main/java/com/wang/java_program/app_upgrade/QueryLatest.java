@@ -3,7 +3,7 @@ package com.wang.java_program.app_upgrade;
 import com.google.gson.Gson;
 import com.wang.java_program.app_upgrade.bean.AppLatestVersion;
 import com.wang.java_util.FileUtil;
-import com.wang.json_result.JsonResult;
+import com.wang.web.JsonResult;
 import com.wang.web.CustomHttpServlet;
 
 import java.util.HashMap;

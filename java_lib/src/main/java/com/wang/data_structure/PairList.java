@@ -1,4 +1,4 @@
-package com.wang.java_util;
+package com.wang.data_structure;
 
 import java.util.ArrayList;
 import java.util.List;

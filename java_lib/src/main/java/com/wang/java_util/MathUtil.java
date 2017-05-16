@@ -238,4 +238,15 @@ public class MathUtil {
         return list;
     }
 
+    public static int pow(int a, int b) {
+        if (a <= 0 || b < 0) {
+            return -1;
+        }
+        int result = 1;
+        for (int i = 1; i <= b; i++) {
+            result *= a;
+        }
+        return result;
+    }
+
 }

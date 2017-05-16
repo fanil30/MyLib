@@ -3,7 +3,7 @@ package com.wang.android_lib.helper;
 import android.content.Context;
 
 import com.wang.android_lib.util.AndroidHttpUtil;
-import com.wang.java_util.Pair;
+import com.wang.data_structure.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

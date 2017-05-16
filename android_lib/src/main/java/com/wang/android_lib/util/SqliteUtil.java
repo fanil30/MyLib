@@ -10,7 +10,7 @@ import com.wang.db.basis.ConstraintAnno;
 import com.wang.db.basis.TypeAnno;
 import com.wang.db.exception.PrimaryKeyNotFoundException;
 import com.wang.java_util.HtmlCreateUtil;
-import com.wang.java_util.PairList;
+import com.wang.data_structure.PairList;
 import com.wang.java_util.TextUtil;
 
 import java.lang.reflect.Field;

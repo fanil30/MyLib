@@ -1,5 +1,7 @@
 package com.wang.java_util;
 
+import com.wang.data_structure.Pair;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;

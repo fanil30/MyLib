@@ -1,4 +1,4 @@
-package com.wang.java_util;
+package com.wang.data_structure;
 
 /**
  * by wangrongjun on 2016/11/1.

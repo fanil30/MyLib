@@ -9,7 +9,7 @@ import com.wang.java_util.DebugUtil;
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.HttpUtil;
 import com.wang.java_util.JsonFormatUtil;
-import com.wang.java_util.Pair;
+import com.wang.data_structure.Pair;
 import com.wang.java_util.TextUtil;
 
 import java.io.InputStream;
