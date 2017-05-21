@@ -10,7 +10,7 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 
 /**
- * 只支持导入导出具有静态成员变量为int，double，String类型的配置类
+ * 只支持导入导出具有静态成员变量为int，double，String，boolean类型的配置类
  */
 public class ConfigUtil {
     /**

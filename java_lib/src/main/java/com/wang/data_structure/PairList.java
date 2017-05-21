@@ -13,7 +13,7 @@ public class PairList<T1, T2> {
     public PairList() {
         entityList = new ArrayList<>();
     }
-    
+
     public T1 getLeft(int index) {
         return entityList.get(index).getT1();
     }
@@ -38,16 +38,16 @@ public class PairList<T1, T2> {
         private T1 t1;
         private T2 t2;
 
-        public Entity(T1 t1, T2 t2) {
+        Entity(T1 t1, T2 t2) {
             this.t1 = t1;
             this.t2 = t2;
         }
 
-        public T1 getT1() {
+        T1 getT1() {
             return t1;
         }
 
-        public T2 getT2() {
+        T2 getT2() {
             return t2;
         }
 

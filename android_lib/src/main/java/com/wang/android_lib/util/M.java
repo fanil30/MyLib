@@ -23,6 +23,13 @@ public class M {
         }
     }
 
+    public static void tl(Context context, String text) {
+        if (text == null) text = "";
+        if (context != null) {
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show();
+        }
+    }
+
     public static void i(String info) {
         Log.i("info", info);
     }

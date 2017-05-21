@@ -183,8 +183,7 @@ public class TextUtil {
      */
     public static int compareChinaPinYin(String s1, String s2) {
         Comparator<Object> cmp = Collator.getInstance(Locale.CHINA);
-        int i = cmp.compare(s1, s2);
-        return i;
+        return cmp.compare(s1, s2);
     }
 
     /**
