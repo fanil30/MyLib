@@ -13,7 +13,7 @@ import com.wang.db.basis.TypeAnno;
 public class Favourite {
 
     @TypeAnno(type = FieldType.INT)
-    @ConstraintAnno(constraint = Constraint.FOREIGN_KEY, foreignTable = "User", foreignField = "userId",
+    @ConstraintAnno(constraint = Constraint.FOREIGN_KEY, foreignTable = "Employee", foreignField = "userId",
             onDeleteAction = Action.CASCADE, onUpdateAction = Action.CASCADE)
     private int userId;
 

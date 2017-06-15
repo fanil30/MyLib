@@ -6,9 +6,44 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 /**
- * Created by Administrator on 2016/3/4.
+ * by Administrator on 2016/3/4.
  */
 public class ReflectUtil {
+
+    public static Field findByAnno(Class entityClass, Class annoClass) {
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (field.getAnnotation(annoClass) != null) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    public static Object get(Field field, Object obj) {
+        try {
+            return field.get(obj);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void set(Field field, Object obj, Object value) {
+        try {
+            field.set(obj, value);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static <T> T newInstance(Class<T> entityClass) {
+        try {
+            return entityClass.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public static void showDeclaredFields(Class cls) {
         getDeclaredFields(cls);

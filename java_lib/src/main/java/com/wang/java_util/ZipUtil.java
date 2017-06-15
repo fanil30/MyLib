@@ -96,10 +96,16 @@ public class ZipUtil {
             ZipEntry entry;
 
             while ((entry = zis.getNextEntry()) != null) {
+
                 String path = entry.getName();
                 String fileName = TextUtil.getTextAfterLastSlash(path);
-                String dir = unzipDir + path.replace(fileName, "");
+                String dir = unzipDir + File.separator + path.replace(fileName, "");
+                System.out.println(dir);
                 new File(dir).mkdirs();
+
+                if (entry.isDirectory()) {
+                    continue;
+                }
 
                 InputStream is = zipFile.getInputStream(entry);
                 FileOutputStream fos = new FileOutputStream(dir + fileName);
