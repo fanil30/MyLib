@@ -2,7 +2,6 @@ package com.wang.db2;
 
 import com.wang.java_util.DebugUtil;
 import com.wang.java_util.ReflectUtil;
-import com.wang.java_util.TextUtil;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -46,6 +45,7 @@ public abstract class BaseDao<T> implements Dao<T> {
         return connection;
     }
 
+    @Override
     public void close() {
         try {
             if (rs != null) {
@@ -188,7 +188,6 @@ public abstract class BaseDao<T> implements Dao<T> {
         String sql = "insert into " +
                 tableName + " (" + columnStringList + ") values (" + valueList + ");";
         print(sql);
-        int id = 0;
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
@@ -196,9 +195,9 @@ public abstract class BaseDao<T> implements Dao<T> {
             rs = ps.getGeneratedKeys();
             if (rs.next()) {
                 long l = (long) rs.getObject(1);
-                id = (int) l;
+                int id = (int) l;
+                setIdValue(entity, id);
             }
-            setIdValue(entity, id);
             succeed = true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -210,14 +209,14 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public boolean delete(String whereName, String whereValue) {
+    public boolean delete(Where where) {
         boolean succeed = false;
         String tableName = getTableName();
         String sql;
-        if (TextUtil.isEmpty(whereName)) {
+        if (where == null || where.size() == 0) {
             sql = "delete from " + tableName + ";";
         } else {
-            sql = "delete from " + tableName + " where " + whereName + "='" + whereValue + "';";
+            sql = "delete from " + tableName + " where " + where + ";";
         }
         print(sql);
         try {
@@ -238,12 +237,12 @@ public abstract class BaseDao<T> implements Dao<T> {
     @Override
     public boolean deleteById(int id) {
         String idName = getIdField().getName();
-        return delete(idName, id + "");
+        return delete(Where.build(idName, id + ""));
     }
 
     @Override
     public boolean deleteAll() {
-        return delete(null, null);
+        return delete(null);
     }
 
     @Override
@@ -367,13 +366,18 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public List<T> queryAll() {
-        return query(getEntityClass(), null, getConnection(), 0, 1);
+    public List<T> query(Where where) {
+        return query(where, 255);
     }
 
     @Override
-    public List<T> query(String columnName, String value) {
-        return query(getEntityClass(), new Where().add(columnName, value), getConnection(), 0, 255);
+    public List<T> query(Where where, int maxQueryForeignKeyLevel) {
+        return query(getEntityClass(), where, getConnection(), 0, maxQueryForeignKeyLevel);
+    }
+
+    @Override
+    public List<T> queryAll() {
+        return query(getEntityClass(), null, getConnection(), 0, 255);
     }
 
 }

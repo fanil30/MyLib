@@ -12,7 +12,7 @@ public interface Dao<T> {
 
     boolean insert(T entity);
 
-    boolean delete(String whereName, String whereValue);
+    boolean delete(Where where);
 
     boolean deleteById(int id);
 
@@ -24,6 +24,10 @@ public interface Dao<T> {
 
     List<T> queryAll();
 
-    List<T> query(String columnName, String value);
+    List<T> query(Where where);
+
+    List<T> query(Where where, int maxQueryForeignKeyLevel);
+
+    void close();
 
 }

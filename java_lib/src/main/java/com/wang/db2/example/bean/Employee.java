@@ -21,8 +21,6 @@ public class Employee {
     private int employeeId;
     @Column(length = 20, nullable = false)
     private String name;
-    @Column(length = 20, nullable = false)
-    private String password;
     private int gender;
     @Reference
     private Position position;
@@ -31,10 +29,9 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(int employeeId, String name, String password, int gender, Position position, double salary) {
+    public Employee(int employeeId, String name, int gender, Position position, double salary) {
         this.employeeId = employeeId;
         this.name = name;
-        this.password = password;
         this.gender = gender;
         this.position = position;
         this.salary = salary;
@@ -54,14 +51,6 @@ public class Employee {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public Position getPosition() {

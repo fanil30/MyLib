@@ -1,6 +1,7 @@
 package com.wang.db2.example.bean;
 
 
+import com.wang.db2.Column;
 import com.wang.db2.Id;
 
 /**
@@ -11,6 +12,7 @@ public class Department {
 
     @Id
     private int departmentId;
+    @Column(length = 20, nullable = false)
     private String name;
 
     public Department() {

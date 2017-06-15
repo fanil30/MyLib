@@ -8,6 +8,6 @@ import com.wang.db2.BaseDao;
 
 public abstract class OADao<T> extends BaseDao<T> {
     public OADao() {
-        super("root", "21436587", "rent_house", true);
+        super("root", "21436587", "oa", true);
     }
 }

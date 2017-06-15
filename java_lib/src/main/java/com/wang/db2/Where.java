@@ -66,6 +66,10 @@ public class Where {
         return this;
     }
 
+    public static Where build(String whereName, String whereValue) {
+        return new Where().add(whereName, whereValue);
+    }
+
     /**
      * @return username='wang' and password='123' or gender='1' or nickname like '%abc%'
      */
