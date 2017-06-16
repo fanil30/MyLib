@@ -82,7 +82,7 @@ public class OADaoTest {
         employeeLoginDao.insert(new EmployeeLogin(employee2, "456"));
         employeeLoginDao.insert(new EmployeeLogin(employee3, "789"));
         employeeLoginDao.insert(new EmployeeLogin(employee4, "000"));
-        GsonUtil.printFormatJson(employeeLoginDao.query(null, 0));
+        GsonUtil.printFormatJson(employeeLoginDao.query(null));
 
         GsonUtil.printFormatJson(positionDao.queryByDepartmentId(2));
     }

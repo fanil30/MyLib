@@ -108,7 +108,7 @@ public abstract class BaseDao<T> implements Dao<T> {
         }
     }
 
-    private boolean executeUpdate(String sql) {
+    protected boolean executeUpdate(String sql) {
         boolean succeed = false;
         try {
             conn = getConnection();
@@ -282,29 +282,20 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     /**
-     * @param currentLevel 当前查询层次，首次递归为0
-     * @param maxLevel     最大查询层次。如果为0，则不查询外键对象（列表）。
-     *                     如果为1，查询外键对象（列表），但不查询
-     *                     外键对象（列表）的外键对象（列表）。如此类推
+     * @param currentLevel            当前查询层次，首次递归为0
+     * @param maxQueryForeignKeyLevel 最大查询层次。如果为0，则不查询外键对象（列表）。
+     *                                如果为1，查询外键对象（列表），但不查询
+     *                                外键对象（列表）的外键对象（列表）。如此类推
      */
-    private static <T> List<T> query(Class<T> entityClass, Where where, Connection conn,
-                                     int currentLevel, int maxLevel) {
-        if (currentLevel > maxLevel) {
+    protected static <T> List<T> executeQuery(String sql, Class<T> entityClass, Connection conn,
+                                              int currentLevel, int maxQueryForeignKeyLevel) {
+        if (currentLevel > maxQueryForeignKeyLevel) {
             return null;
         }
 
         List<T> entityList = new ArrayList<>();
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String tableName = entityClass.getSimpleName();
-
-        String sql;
-        if (where != null && where.size() > 0) {
-            sql = "select * from " + tableName + " where " + where + ";";
-        } else {
-            sql = "select * from " + tableName + ";";
-        }
-        print(sql);
         try {
             ps = conn.prepareStatement(sql);
             rs = ps.executeQuery();
@@ -327,9 +318,10 @@ public abstract class BaseDao<T> implements Dao<T> {
                         innerIdField.setAccessible(true);
                         String innerIdName = innerIdField.getName();
                         Object innerIdValue = rs.getObject(field.getName());
-                        Where innerWhere = new Where().add(innerIdName, innerIdValue + "");
-                        List innerEntityList = query(innerEntityClass, innerWhere, conn,
-                                currentLevel + 1, maxLevel);
+                        String innerSql = "select * from " + innerEntityClass.getSimpleName() +
+                                " where " + innerIdName + "='" + innerIdValue + "';";
+                        List innerEntityList = executeQuery(innerSql, innerEntityClass, conn,
+                                currentLevel + 1, maxQueryForeignKeyLevel);
                         if (innerEntityList != null && innerEntityList.size() > 0) {
                             field.set(entity, innerEntityList.get(0));
                         }
@@ -352,13 +344,33 @@ public abstract class BaseDao<T> implements Dao<T> {
                 e.printStackTrace();
             }
         }
+
         return entityList;
     }
 
     @Override
+    public List<T> query(Where where, int maxQueryForeignKeyLevel) {
+        String sql;
+        if (where != null && where.size() > 0) {
+            sql = "select * from " + getTableName() + " where " + where + ";";
+        } else {
+            sql = "select * from " + getTableName() + ";";
+        }
+        print(sql);
+        Connection connection = getConnection();
+        List<T> list = executeQuery(sql, getEntityClass(), connection, 0, maxQueryForeignKeyLevel);
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    @Override
     public T queryById(int id) {
-        Where where = new Where().add(getIdField().getName(), id + "");
-        List<T> list = query(getEntityClass(), where, getConnection(), 0, 255);
+        Where where = Where.build(getIdField().getName(), id + "");
+        List<T> list = query(where);
         if (list != null && list.size() > 0) {
             return list.get(0);
         }
@@ -371,13 +383,8 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public List<T> query(Where where, int maxQueryForeignKeyLevel) {
-        return query(getEntityClass(), where, getConnection(), 0, maxQueryForeignKeyLevel);
-    }
-
-    @Override
     public List<T> queryAll() {
-        return query(getEntityClass(), null, getConnection(), 0, 255);
+        return query(null);
     }
 
 }
