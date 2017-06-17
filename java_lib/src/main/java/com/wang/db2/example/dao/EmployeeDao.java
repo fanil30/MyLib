@@ -1,16 +1,16 @@
 package com.wang.db2.example.dao;
 
+import com.wang.db2.Dao;
 import com.wang.db2.example.bean.Employee;
 
+import java.util.List;
+
 /**
- * by wangrongjun on 2017/6/14.
+ * by wangrongjun on 2017/6/17.
  */
 
-public class EmployeeDao extends OADao<Employee> {
+public interface EmployeeDao extends Dao<Employee> {
 
-    @Override
-    protected Class<Employee> getEntityClass() {
-        return Employee.class;
-    }
+    List<Employee> queryByDepartmentId(int departmentId);
 
 }

@@ -1,14 +1,11 @@
 package com.wang.db2.example.dao;
 
+import com.wang.db2.Dao;
 import com.wang.db2.example.bean.EmployeeLogin;
 
 /**
- * by wangrongjun on 2017/6/15.
+ * by wangrongjun on 2017/6/17.
  */
 
-public class EmployeeLoginDao extends OADao<EmployeeLogin> {
-    @Override
-    protected Class<EmployeeLogin> getEntityClass() {
-        return EmployeeLogin.class;
-    }
+public interface EmployeeLoginDao extends Dao<EmployeeLogin> {
 }

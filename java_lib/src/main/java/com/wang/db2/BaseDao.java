@@ -22,6 +22,10 @@ public abstract class BaseDao<T> implements Dao<T> {
     protected Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
+    /**
+     * 防止输入的值中含有非法字符如单引号，末尾的斜杠等。防止sql注入攻击。
+     */
+    protected InputValueFormatter formatter = new InputValueFormatter.InputValueFormatterImpl();
 
     public BaseDao(String username, String password, String databaseName, boolean printSql) {
         this.username = username;
@@ -45,7 +49,6 @@ public abstract class BaseDao<T> implements Dao<T> {
         return connection;
     }
 
-    @Override
     public void close() {
         try {
             if (rs != null) {
@@ -60,13 +63,6 @@ public abstract class BaseDao<T> implements Dao<T> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    private String formatInputValue(String value) {
-        if (value.endsWith("\\")) {
-            value = value + "\\";
-        }
-        return value.replace("'", "\\'");
     }
 
     private Field getIdField() {
@@ -176,7 +172,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                     valueList += ",'" + idValue + "'";
                 } else {
                     String value = field.get(entity) + "";
-                    valueList += ",'" + formatInputValue(value) + "'";
+                    valueList += ",'" + formatter.format(value) + "'";
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -267,7 +263,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                     setValueList += "'" + idValue + "'";
                 } else {
                     String value = field.get(entity) + "";
-                    setValueList += "'" + formatInputValue(value) + "'";
+                    setValueList += "'" + formatter.format(value) + "'";
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -287,8 +283,8 @@ public abstract class BaseDao<T> implements Dao<T> {
      *                                如果为1，查询外键对象（列表），但不查询
      *                                外键对象（列表）的外键对象（列表）。如此类推
      */
-    protected static <T> List<T> executeQuery(String sql, Class<T> entityClass, Connection conn,
-                                              int currentLevel, int maxQueryForeignKeyLevel) {
+    private static <T> List<T> executeQuery(String sql, Class<T> entityClass, Connection conn,
+                                            int currentLevel, int maxQueryForeignKeyLevel) {
         if (currentLevel > maxQueryForeignKeyLevel) {
             return null;
         }
@@ -348,14 +344,7 @@ public abstract class BaseDao<T> implements Dao<T> {
         return entityList;
     }
 
-    @Override
-    public List<T> query(Where where, int maxQueryForeignKeyLevel) {
-        String sql;
-        if (where != null && where.size() > 0) {
-            sql = "select * from " + getTableName() + " where " + where + ";";
-        } else {
-            sql = "select * from " + getTableName() + ";";
-        }
+    protected List<T> executeQuery(String sql, int maxQueryForeignKeyLevel) {
         print(sql);
         Connection connection = getConnection();
         List<T> list = executeQuery(sql, getEntityClass(), connection, 0, maxQueryForeignKeyLevel);
@@ -365,6 +354,44 @@ public abstract class BaseDao<T> implements Dao<T> {
             e.printStackTrace();
         }
         return list;
+    }
+
+    @Override
+    public List<T> query(Query query) {
+        String sql;
+        Where where = query.getWhere();
+        if (where != null && where.size() > 0) {
+            sql = "select * from " + getTableName() + " where " + where;
+        } else {
+            sql = "select * from " + getTableName();
+        }
+
+        String[] orderBy = query.getOrderBy();
+        if (orderBy != null && orderBy.length > 0) {
+            sql += " order by ";
+            for (String s : orderBy) {
+                if (s.startsWith("-")) {
+                    sql += s.substring(1) + " desc,";
+                } else {
+                    sql += s + ",";
+                }
+            }
+            sql = sql.substring(0, sql.length() - 1);//去掉最后多余的逗号
+        }
+
+        int offset = query.getOffset();
+        int rowCount = query.getRowCount();
+        if (rowCount > 0 && offset >= 0) {
+            sql += " limit " + offset + "," + rowCount;
+        }
+
+        sql += ";";
+        return executeQuery(sql, query.getMaxQueryForeignKeyLevel());
+    }
+
+    @Override
+    public List<T> query(Where where) {
+        return query(Query.build(where));
     }
 
     @Override
@@ -378,13 +405,27 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public List<T> query(Where where) {
-        return query(where, 255);
+    public List<T> queryAll() {
+        return query(new Query());
     }
 
     @Override
-    public List<T> queryAll() {
-        return query(null);
+    public int queryCount(Where where) {
+        int count = 0;
+        String sql = "select count(*) from " + getTableName();
+        sql += where == null || where.size() == 0 ? ";" : (" where " + where + ";");
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+        return count;
     }
-
 }

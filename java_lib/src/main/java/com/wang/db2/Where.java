@@ -9,14 +9,17 @@ import java.util.List;
 public class Where {
 
     /**
-     * 查询条件的模式（相等，不相等，小于，大于，模糊查询）
+     * 查询条件的模式（相等，不相等，小于，小于等于，大于，大于等于，模糊查询）
      */
     public enum QueryMode {
         EQUAL,
         NOT_EQUAL,
         LESS,
+        LESS_EQUAL,
         MORE,
-        LIKE
+        MORE_EQUAL,
+        LIKE,
+        NOT_LIKE
     }
 
     /**
@@ -28,41 +31,39 @@ public class Where {
         OR,
     }
 
-    private List<Equation> equationList;
+    private List<Expression> expressionList;
+    private InputValueFormatter formatter;
 
     public Where() {
-        equationList = new ArrayList<>();
-    }
-
-    public Equation get(int position) {
-        return equationList.get(position);
+        expressionList = new ArrayList<>();
+        formatter = new InputValueFormatter.InputValueFormatterImpl();
     }
 
     public int size() {
-        return equationList.size();
+        return expressionList.size();
     }
 
     public Where add(String name, String value, QueryMode mode, QueryLogic logic) {
-        Equation equation = new Equation(name, value, mode, logic);
-        equationList.add(equation);
+        Expression expression = new Expression(name, value, mode, logic);
+        expressionList.add(expression);
         return this;
     }
 
     public Where add(String name, String value, QueryMode mode) {
-        Equation equation = new Equation(name, value, mode, QueryLogic.AND);
-        equationList.add(equation);
+        Expression expression = new Expression(name, value, mode, QueryLogic.AND);
+        expressionList.add(expression);
         return this;
     }
 
     public Where add(String name, String value, QueryLogic logic) {
-        Equation equation = new Equation(name, value, QueryMode.EQUAL, logic);
-        equationList.add(equation);
+        Expression expression = new Expression(name, value, QueryMode.EQUAL, logic);
+        expressionList.add(expression);
         return this;
     }
 
     public Where add(String name, String value) {
-        Equation equation = new Equation(name, value, QueryMode.EQUAL, QueryLogic.AND);
-        equationList.add(equation);
+        Expression expression = new Expression(name, value, QueryMode.EQUAL, QueryLogic.AND);
+        expressionList.add(expression);
         return this;
     }
 
@@ -76,30 +77,45 @@ public class Where {
     @Override
     public String toString() {
         if (size() == 0) {
-            return "";
+            return null;
         }
         String sql = "";
         for (int i = 0; i < size(); i++) {
-            Where.Equation equation = get(i);
+            Expression expression = expressionList.get(i);
             // 1.字段名字
-            sql += equation.name;
+            sql += expression.name;
             // 2.查询模式
-            switch (equation.queryMode) {
+            switch (expression.queryMode) {
                 case EQUAL:
                     sql += "=";
                     break;
                 case NOT_EQUAL:
                     sql += "!=";
                     break;
+                case LESS:
+                    sql += "<";
+                    break;
+                case LESS_EQUAL:
+                    sql += "<=";
+                    break;
+                case MORE:
+                    sql += ">";
+                    break;
+                case MORE_EQUAL:
+                    sql += ">=";
+                    break;
                 case LIKE:
                     sql += " like ";
                     break;
+                case NOT_LIKE:
+                    sql += " not like ";
+                    break;
             }
             // 3.赋值
-            sql += "'" + equation.value + "'";
+            sql += "'" + expression.value + "'";
             // 4.如果不是最后一个查询条件，添加查询逻辑
             if (i < size() - 1) {
-                switch (equation.queryLogic) {
+                switch (expression.queryLogic) {
                     case AND:
                         sql += " and ";
                         break;
@@ -112,16 +128,16 @@ public class Where {
         return sql;
     }
 
-    public class Equation {
+    private class Expression {
         public String name;
         public String value;
         public QueryMode queryMode;
         public QueryLogic queryLogic;
 
-        public Equation(String name, String value, QueryMode queryMode,
-                        QueryLogic queryLogic) {
+        Expression(String name, String value, QueryMode queryMode,
+                   QueryLogic queryLogic) {
             this.name = name;
-            this.value = value;
+            this.value = formatter.format(value);
             this.queryMode = queryMode;
             this.queryLogic = queryLogic;
         }

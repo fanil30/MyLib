@@ -1,5 +1,6 @@
 package com.wang.db2.example.test;
 
+import com.wang.db2.Query;
 import com.wang.db2.example.bean.Department;
 import com.wang.db2.example.bean.Employee;
 import com.wang.db2.example.bean.EmployeeLogin;
@@ -9,10 +10,11 @@ import com.wang.db2.example.dao.EmployeeDao;
 import com.wang.db2.example.dao.EmployeeLoginDao;
 import com.wang.db2.example.dao.PositionDao;
 import com.wang.db2.example.dao.impl.DepartmentDaoImpl;
+import com.wang.db2.example.dao.impl.EmployeeDaoImpl;
+import com.wang.db2.example.dao.impl.EmployeeLoginDaoImpl;
 import com.wang.db2.example.dao.impl.PositionDaoImpl;
 import com.wang.java_util.GsonUtil;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,7 +66,7 @@ public class OADaoTest {
         Employee employee1 = new Employee(1001, "employee_111", 1, position1, 1000);
         Employee employee2 = new Employee(1002, "employee_2", 0, position2, 2000);
         Employee employee3 = new Employee(1003, "employee_3", 1, position3, 3000);
-        Employee employee4 = new Employee(1004, "employee_4", 1, position4, 4000);
+        Employee employee4 = new Employee(1004, "employee_4", 1, position4, 3000);
         Employee employee5 = new Employee(1005, "employee_5", 1, position1, 5000);
         employeeDao.insert(employee1);
         employeeDao.insert(employee2);
@@ -82,25 +84,21 @@ public class OADaoTest {
         employeeLoginDao.insert(new EmployeeLogin(employee2, "456"));
         employeeLoginDao.insert(new EmployeeLogin(employee3, "789"));
         employeeLoginDao.insert(new EmployeeLogin(employee4, "000"));
-        GsonUtil.printFormatJson(employeeLoginDao.query(null));
+        GsonUtil.printFormatJson(employeeLoginDao.queryAll());
 
-        GsonUtil.printFormatJson(positionDao.queryByDepartmentId(2));
+//        GsonUtil.printFormatJson(positionDao.queryByDepartmentId(2));
+//        GsonUtil.printFormatJson(employeeDao.queryByDepartmentId(2));
+
+        GsonUtil.printFormatJson(employeeDao.query(new Query().maxQueryForeignKeyLevel(1).orderBy("-salary", "name").limit(1, 3)));
+
     }
 
     @Before
     public void init() {
         departmentDao = new DepartmentDaoImpl();
         positionDao = new PositionDaoImpl();
-        employeeDao = new EmployeeDao();
-        employeeLoginDao = new EmployeeLoginDao();
-    }
-
-    @After
-    public void close() {
-        departmentDao.close();
-        positionDao.close();
-        employeeDao.close();
-        employeeLoginDao.close();
+        employeeDao = new EmployeeDaoImpl();
+        employeeLoginDao = new EmployeeLoginDaoImpl();
     }
 
 }

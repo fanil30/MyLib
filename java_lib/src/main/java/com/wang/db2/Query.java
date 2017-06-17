@@ -1,0 +1,71 @@
+package com.wang.db2;
+
+/**
+ * by wangrongjun on 2017/6/17.
+ */
+
+public class Query {
+
+    private Where where = null;
+    /**
+     * 递归查询外键对象到第level层为止。
+     */
+    private int maxQueryForeignKeyLevel = 255;
+    /**
+     * 相对于第一行记录的偏移量。例如offset=0指向第一行，offset=1指向第二行。
+     */
+    private int offset = 0;
+    /**
+     * 返回的记录数量。如果为0，则忽略（sql语句不包含limit）。
+     */
+    private int rowCount = 0;
+    /**
+     * 按照指定的字段排序。如果前面有负号-，则倒序排序。
+     */
+    private String[] orderBy = null;
+
+    public static Query build(Where where) {
+        return new Query().where(where);
+    }
+
+    public Query where(Where where) {
+        this.where = where;
+        return this;
+    }
+
+    public Query maxQueryForeignKeyLevel(int maxQueryForeignKeyLevel) {
+        this.maxQueryForeignKeyLevel = maxQueryForeignKeyLevel;
+        return this;
+    }
+
+    public Query limit(int offset, int rowCount) {
+        this.offset = offset;
+        this.rowCount = rowCount;
+        return this;
+    }
+
+    public Query orderBy(String... orderBy) {
+        this.orderBy = orderBy;
+        return this;
+    }
+
+    public Where getWhere() {
+        return where;
+    }
+
+    public int getMaxQueryForeignKeyLevel() {
+        return maxQueryForeignKeyLevel;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public int getRowCount() {
+        return rowCount;
+    }
+
+    public String[] getOrderBy() {
+        return orderBy;
+    }
+}

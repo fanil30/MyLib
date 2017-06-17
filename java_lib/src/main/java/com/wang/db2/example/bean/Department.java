@@ -12,7 +12,7 @@ public class Department {
 
     @Id
     private int departmentId;
-    @Column(length = 20, nullable = false)
+    @Column(length = 50, nullable = false)
     private String name;
 
     public Department() {
