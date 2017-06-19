@@ -86,10 +86,14 @@ public class OADaoTest {
         employeeLoginDao.insert(new EmployeeLogin(employee4, "000"));
         GsonUtil.printFormatJson(employeeLoginDao.queryAll());
 
-//        GsonUtil.printFormatJson(positionDao.queryByDepartmentId(2));
-//        GsonUtil.printFormatJson(employeeDao.queryByDepartmentId(2));
+        GsonUtil.printFormatJson(positionDao.queryByDepartmentId(2));
+        GsonUtil.printFormatJson(employeeDao.queryByDepartmentId(2));
 
-        GsonUtil.printFormatJson(employeeDao.query(new Query().maxQueryForeignKeyLevel(1).orderBy("-salary", "name").limit(1, 3)));
+        GsonUtil.printFormatJson(employeeDao.query(new Query().
+                orderBy("-salary", "name").
+                limit(1, 3).
+                ignore("department")
+        ));
 
     }
 

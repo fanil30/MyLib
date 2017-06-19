@@ -1,5 +1,8 @@
 package com.wang.db2;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * by wangrongjun on 2017/6/17.
  */
@@ -10,7 +13,12 @@ public class Query {
     /**
      * 递归查询外键对象到第level层为止。
      */
-    private int maxQueryForeignKeyLevel = 255;
+    private int maxQueryForeignKeyLevel = 32;
+    /**
+     * 查询中应该忽略的变量名列表。如果查到某个@Reference对象
+     * 存在于忽略列表当中，就忽略（但还是会查询该对象的id属性）。
+     */
+    private List<String> ignoreReferenceList;
     /**
      * 相对于第一行记录的偏移量。例如offset=0指向第一行，offset=1指向第二行。
      */
@@ -35,6 +43,11 @@ public class Query {
 
     public Query maxQueryForeignKeyLevel(int maxQueryForeignKeyLevel) {
         this.maxQueryForeignKeyLevel = maxQueryForeignKeyLevel;
+        return this;
+    }
+
+    public Query ignore(String... ignoreReferenceName) {
+        ignoreReferenceList = Arrays.asList(ignoreReferenceName);
         return this;
     }
 
@@ -67,5 +80,9 @@ public class Query {
 
     public String[] getOrderBy() {
         return orderBy;
+    }
+
+    public List<String> getIgnoreReferenceList() {
+        return ignoreReferenceList;
     }
 }
