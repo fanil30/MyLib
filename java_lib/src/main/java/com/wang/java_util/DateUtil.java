@@ -29,11 +29,11 @@ public class DateUtil {
     }
 
     /**
-     * 获取系统当前日期和时间，格式：yyyy-MM-dd_HH:mm:ss
+     * 获取系统当前日期和时间，格式：yyyy-MM-dd HH:mm:ss
      */
     public static String getCurrentDateAndTime() {
         SimpleDateFormat sdf = (SimpleDateFormat) SimpleDateFormat.getDateTimeInstance();
-        sdf.applyPattern("yyyy-MM-dd_HH:mm:ss");
+        sdf.applyPattern("yyyy-MM-dd HH:mm:ss");
         return sdf.format(new Date());
     }
 
@@ -118,5 +118,5 @@ public class DateUtil {
         calendar.set(Calendar.SECOND, second);
         return calendar.getTimeInMillis();
     }
-    
+
 }

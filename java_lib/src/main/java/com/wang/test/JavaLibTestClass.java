@@ -1,9 +1,11 @@
 package com.wang.test;
 
+import com.wang.java_util.LogUtil;
+
 public class JavaLibTestClass {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("hello");
+        LogUtil.print("hello");
     }
 
 }

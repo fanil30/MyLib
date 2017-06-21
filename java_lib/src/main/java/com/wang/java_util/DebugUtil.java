@@ -80,6 +80,7 @@ public class DebugUtil {
         } catch (Exception e) {
             StackTraceElement[] elementList = e.getStackTrace();
             for (int i = 0; i < elementList.length; i++) {
+                System.out.println(elementList[i].getClassName() + " - " + elementList[i].getMethodName());
                 String s = getTextAfterLastPoint(elementList[i].getClassName());
                 // TODO 如果是afterClass的子类，也算是afterClass，跳过
 //                elementList[0].getClass().getGenericSuperclass().getClass().getSimpleName();

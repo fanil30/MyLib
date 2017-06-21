@@ -1,6 +1,7 @@
 package com.wang.db2;
 
-import com.wang.java_util.DebugUtil;
+import com.wang.java_util.GsonUtil;
+import com.wang.java_util.LogUtil;
 import com.wang.java_util.ReflectUtil;
 
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ public abstract class BaseDao<T> implements Dao<T> {
     private String password;
     private String dbName;
     private static boolean printSql;
+    private static boolean printResult;
     protected Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
@@ -27,11 +29,13 @@ public abstract class BaseDao<T> implements Dao<T> {
      */
     protected InputValueFormatter formatter = new InputValueFormatter.InputValueFormatterImpl();
 
-    public BaseDao(String username, String password, String databaseName, boolean printSql) {
+    public BaseDao(String username, String password, String databaseName,
+                   boolean printSql, boolean printResult) {
         this.username = username;
         this.password = password;
         this.dbName = databaseName;
         BaseDao.printSql = printSql;
+        BaseDao.printResult = printResult;
     }
 
     protected abstract Class<T> getEntityClass();
@@ -98,9 +102,19 @@ public abstract class BaseDao<T> implements Dao<T> {
         return getEntityClass().getSimpleName();
     }
 
-    private static void print(String sql) {
+    private static void printSql(String sql) {
         if (printSql) {
-            System.out.println(DebugUtil.getDebugMessage(sql, "BaseDao") + "\n");
+            System.out.println();
+            LogUtil.print(sql, "com.wang.db2.BaseDao");
+            System.out.println();
+        }
+    }
+
+    private static void printResult(List list) {
+        if (printResult) {
+            System.out.println("\n----------- begin -----------");
+            GsonUtil.printFormatJson(list);
+            System.out.println("-----------  end  -----------\n");
         }
     }
 
@@ -124,14 +138,14 @@ public abstract class BaseDao<T> implements Dao<T> {
     @Override
     public boolean createTable() {
         String sql = TableUtil.createTableSql(getEntityClass());
-        print(sql);
+        printSql(sql);
         return executeUpdate(sql);
     }
 
     @Override
     public boolean dropTable() {
         String sql = TableUtil.dropTableSql(getEntityClass());
-        print(sql);
+        printSql(sql);
         return executeUpdate(sql);
     }
 
@@ -140,7 +154,7 @@ public abstract class BaseDao<T> implements Dao<T> {
         boolean succeed = true;
         List<String> sqlList = TableUtil.foreignKeySql(getEntityClass());
         for (String sql : sqlList) {
-            print(sql);
+            printSql(sql);
             if (!executeUpdate(sql)) {
                 succeed = false;
             }
@@ -183,7 +197,7 @@ public abstract class BaseDao<T> implements Dao<T> {
 
         String sql = "insert into " +
                 tableName + " (" + columnStringList + ") values (" + valueList + ");";
-        print(sql);
+        printSql(sql);
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
@@ -214,7 +228,7 @@ public abstract class BaseDao<T> implements Dao<T> {
         } else {
             sql = "delete from " + tableName + " where " + where + ";";
         }
-        print(sql);
+        printSql(sql);
         try {
             conn = getConnection();
             ps = conn.prepareStatement(sql);
@@ -273,21 +287,31 @@ public abstract class BaseDao<T> implements Dao<T> {
 
         String sql = "update " + tableName + " set " + setValueList + " where " +
                 getIdField().getName() + "='" + getIdValue(entity) + "';";
-        print(sql);
+        printSql(sql);
         return executeUpdate(sql);
     }
 
     /**
-     * @param currentLevel            当前查询层次，首次递归为0
-     * @param maxQueryForeignKeyLevel 最大查询层次。如果为0，则不查询外键对象（列表）。
-     *                                如果为1，查询外键对象（列表），但不查询
-     *                                外键对象（列表）的外键对象（列表）。如此类推。
-     * @param ignoreReferenceList     查询中应该忽略的变量名列表。如果查到某个@Reference对象
-     *                                存在于忽略列表当中，就忽略（但还是会查询该对象的id属性）。
+     * @param currentLevel                  当前查询层次，首次递归为0
+     * @param maxQueryForeignKeyLevel       最大查询层次。如果为0，则不查询外键对象（列表）。
+     *                                      如果为1，查询外键对象（列表），但不查询
+     *                                      外键对象（列表）的外键对象（列表）。如此类推。
+     * @param ignoreReferenceList           查询中应该忽略的变量名列表。如果查到某个@Reference对象
+     *                                      存在于忽略列表，就忽略（但还是会查询该对象的id属性）。
+     * @param requiredReferenceVariableList 若不为空，则查询外键对象（该外键对象不存在于
+     *                                      ignoreReferenceList中）中存在于requiredList的变量。
+     *                                      <p>
+     *                                      注意：外键对象的id变量和currentLevel=0时的非外键变量
+     *                                      是一定要查询的，不受requiredList的影响。
+     *                                      <p>
+     *                                      例如，requiredList={"username"}，则查询Shop（Shop表包含
+     *                                      User）时，shop对象的所有属性都有值，shop对象的
+     *                                      user对象中，只有username变量有值。
      */
     private static <T> List<T> executeQuery(String sql, Class<T> entityClass, Connection conn,
                                             int currentLevel, int maxQueryForeignKeyLevel,
-                                            List<String> ignoreReferenceList) {
+                                            List<String> ignoreReferenceList,
+                                            List<String> requiredReferenceVariableList) {
         if (currentLevel > maxQueryForeignKeyLevel) {
             return null;
         }
@@ -307,11 +331,24 @@ public abstract class BaseDao<T> implements Dao<T> {
                     field.setAccessible(true);
                     if (field.getAnnotation(Reference.class) == null) {
                         // 正常赋值
-                        field.set(entity, rs.getObject(field.getName()));
+                        boolean require = true;
+                        if (currentLevel > 0 && field.getAnnotation(Id.class) == null &&
+                                requiredReferenceVariableList != null &&
+                                requiredReferenceVariableList.size() > 0) {
+                            require = false;
+                            for (String requireReferenceVariable : requiredReferenceVariableList) {
+                                if (field.getName().equals(requireReferenceVariable)) {
+                                    require = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (require) {
+                            field.set(entity, rs.getObject(field.getName()));
+                        }
                     } else {
                         // 查询外键对象并赋值
                         Class innerEntityClass = field.getType();
-                        // TODO innerEntityClass是Set集合的处理
                         Field innerIdField = ReflectUtil.findByAnno(innerEntityClass, Id.class);
                         assert innerIdField != null;
                         innerIdField.setAccessible(true);
@@ -323,6 +360,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                             for (String ignoreName : ignoreReferenceList) {
                                 if (field.getName().equals(ignoreName)) {
                                     ignore = true;
+                                    break;
                                 }
                             }
                         }
@@ -335,7 +373,8 @@ public abstract class BaseDao<T> implements Dao<T> {
                             String innerSql = "select * from " + innerEntityClass.getSimpleName() +
                                     " where " + innerIdName + "='" + innerIdValue + "';";
                             List innerEntityList = executeQuery(innerSql, innerEntityClass, conn,
-                                    currentLevel + 1, maxQueryForeignKeyLevel, ignoreReferenceList);
+                                    currentLevel + 1, maxQueryForeignKeyLevel,
+                                    ignoreReferenceList, requiredReferenceVariableList);
                             if (innerEntityList != null && innerEntityList.size() > 0) {
                                 field.set(entity, innerEntityList.get(0));
                             }
@@ -365,16 +404,18 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     protected List<T> executeQuery(String sql, int maxQueryForeignKeyLevel,
-                                   List<String> ignoreReferenceList) {
-        print(sql);
+                                   List<String> ignoreReferenceList,
+                                   List<String> requiredReferenceVariableList) {
+        printSql(sql);
         Connection connection = getConnection();
         List<T> list = executeQuery(sql, getEntityClass(), connection, 0,
-                maxQueryForeignKeyLevel, ignoreReferenceList);
+                maxQueryForeignKeyLevel, ignoreReferenceList, requiredReferenceVariableList);
         try {
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        printResult(list);
         return list;
     }
 
@@ -408,7 +449,10 @@ public abstract class BaseDao<T> implements Dao<T> {
         }
 
         sql += ";";
-        return executeQuery(sql, query.getMaxQueryForeignKeyLevel(), query.getIgnoreReferenceList());
+        return executeQuery(sql, query.getMaxQueryForeignKeyLevel(),
+                query.getIgnoreReferenceList(),
+                query.getRequiredReferenceVariableList()
+        );
     }
 
     @Override

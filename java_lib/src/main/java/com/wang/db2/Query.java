@@ -20,6 +20,10 @@ public class Query {
      */
     private List<String> ignoreReferenceList;
     /**
+     * 若不空，则查询外键对象（该外键对象不存在于ignoreReferenceList中）中存在于requiredList的变量。
+     */
+    private List<String> requiredReferenceVariableList;
+    /**
      * 相对于第一行记录的偏移量。例如offset=0指向第一行，offset=1指向第二行。
      */
     private int offset = 0;
@@ -48,6 +52,11 @@ public class Query {
 
     public Query ignore(String... ignoreReferenceName) {
         ignoreReferenceList = Arrays.asList(ignoreReferenceName);
+        return this;
+    }
+
+    public Query required(String... requiredReferenceVariableName) {
+        requiredReferenceVariableList = Arrays.asList(requiredReferenceVariableName);
         return this;
     }
 
@@ -84,5 +93,9 @@ public class Query {
 
     public List<String> getIgnoreReferenceList() {
         return ignoreReferenceList;
+    }
+
+    public List<String> getRequiredReferenceVariableList() {
+        return requiredReferenceVariableList;
     }
 }

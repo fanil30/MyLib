@@ -1,9 +1,15 @@
 package com.wang.java_util;
 
+import com.wang.test.JavaLibTestClass;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * by Administrator on 2016/3/4.
@@ -45,69 +51,87 @@ public class ReflectUtil {
         return null;
     }
 
-    public static void showDeclaredFields(Class cls) {
-        getDeclaredFields(cls);
-    }
-
-    public static void showDeclaredFields(String packageName) {
-        try {
-            getDeclaredFields(Class.forName(packageName));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void showDeclaredMethods(Class cls) {
-        getDeclaredMethods(cls);
-    }
-
-    public static void showDeclaredMethods(String packageName) {
-        try {
-            getDeclaredMethods(Class.forName(packageName));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static ArrayList<String> getDeclaredFields(Class cls) {
-        ArrayList<String> strFields = new ArrayList<>();
-
+    private static List<String> getDeclaredFields(Class cls) {
+        List<String> strFields = new ArrayList<>();
         Field[] fields = cls.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            String modifiers = Modifier.toString(fields[i].getModifiers());
-            String type = TextUtil.getTextAfterLastPoint(fields[i].getType().toString());
-            String name = fields[i].getName();
+        for (Field field : fields) {
+            String modifiers = Modifier.toString(field.getModifiers());
+            String type = TextUtil.getTextAfterLastPoint(field.getType().toString());
+            String name = field.getName();
             String s = modifiers + " " + type + " " + name + ";";
             strFields.add(s);
             System.out.println(s);
         }
-
         return strFields;
     }
 
-    private static ArrayList<String> getDeclaredMethods(Class cls) {
-        ArrayList<String> strFields = new ArrayList<>();
-
+    private static List<String> getDeclaredMethods(Class cls) {
+        List<String> strFields = new ArrayList<>();
         Method[] methods = cls.getDeclaredMethods();
-        for (int i = 0; i < methods.length; i++) {
-            String modifiers = Modifier.toString(methods[i].getModifiers());
-            String declare = TextUtil.getTextAfterLastPoint(methods[i].getReturnType().toString());
+        for (Method method : methods) {
+            String modifiers = Modifier.toString(method.getModifiers());
+            String declare = TextUtil.getTextAfterLastPoint(method.getReturnType().toString());
             declare = declare.replace(";", "");
-            String name = methods[i].getName();
+            String name = method.getName();
             String parameters = "";
-            Class[] c = methods[i].getParameterTypes();
-            for (int j = 0; j < c.length; j++) {
-                parameters += TextUtil.getTextAfterLastPoint(c[j].toString()) + ", ";
+            Class[] c = method.getParameterTypes();
+            for (Class c1 : c) {
+                parameters += TextUtil.getTextAfterLastPoint(c1.toString()) + ", ";
             }
             if (c.length > 0) {
                 parameters = parameters.substring(0, parameters.length() - 2);
             }
-
             String s = modifiers + " " + declare + " " + name + "(" + parameters + ")" + ";";
             strFields.add(s);
             System.out.println(s);
         }
-
         return strFields;
     }
+
+    @Test
+    public void testCheckExtends() {
+        Assert.assertEquals(true, checkExtends(LogUtil.class, B.class));
+        Assert.assertEquals(true, checkExtends(LogUtil.class, C.class));
+        Assert.assertEquals(true, checkExtends(B.class, C.class));
+
+        Assert.assertEquals(true, checkExtends(LogUtil.class, LogUtil.class));
+        Assert.assertEquals(true, checkExtends(B.class, B.class));
+        Assert.assertEquals(true, checkExtends(C.class, C.class));
+
+        Assert.assertEquals(false, checkExtends(B.class, LogUtil.class));
+        Assert.assertEquals(false, checkExtends(C.class, LogUtil.class));
+        Assert.assertEquals(false, checkExtends(C.class, B.class));
+
+        Assert.assertEquals(true, checkExtends(Object.class, B.class));
+        Assert.assertEquals(false, checkExtends(B.class, Object.class));
+        Assert.assertEquals(false, checkExtends(JavaLibTestClass.class, LogUtil.class));
+        Assert.assertEquals(false, checkExtends(B.class, JavaLibTestClass.class));
+    }
+
+    static class A {
+    }
+
+    static class B extends A {
+    }
+
+    static class C extends B {
+    }
+
+    /**
+     * 检查class1是否为class2的父类。若是，返回true。
+     * 注意：如果class1==class2，返回true。
+     */
+    public static boolean checkExtends(Class class1, Class class2) {
+        if (class1.getName().equals("java.lang.Object")) {
+            return true;
+        }
+        while (!class2.getName().equals("java.lang.Object")) {
+            if (class2.getName().equals(class1.getName())) {
+                return true;
+            }
+            class2 = class2.getSuperclass();
+        }
+        return false;
+    }
+
 }

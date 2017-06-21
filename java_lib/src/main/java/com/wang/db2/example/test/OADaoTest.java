@@ -32,6 +32,9 @@ public class OADaoTest {
     @Test
     public void testOADao() {
 
+        employeeDao.createTable();
+        employeeDao.queryByDepartmentId(1);
+
         employeeLoginDao.dropTable();
         employeeDao.dropTable();
         positionDao.dropTable();
@@ -94,6 +97,14 @@ public class OADaoTest {
                 limit(1, 3).
                 ignore("department")
         ));
+
+        employeeDao.query(new Query().
+                orderBy("-salary", "name").
+                limit(1, 3).
+                ignore("department")
+        );
+
+        GsonUtil.printFormatJson(employeeLoginDao.queryAll());
 
     }
 

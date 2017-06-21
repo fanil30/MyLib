@@ -26,6 +26,6 @@ public class EmployeeDaoImpl extends OADao<Employee> implements EmployeeDao {
                 " and " +
                 "Department.departmentId='" + departmentId + "';";
         // maxQueryForeignKeyLevel=1：只查到Employee中的Position就够了。不再继续查询Position中的Department
-        return executeQuery(sql, 1, null);
+        return executeQuery(sql, 1, null, null);
     }
 }
