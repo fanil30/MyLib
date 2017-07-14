@@ -1,10 +1,13 @@
 package com.wang.db2;
 
+import com.wang.java_util.DateUtil;
 import com.wang.java_util.ReflectUtil;
 import com.wang.java_util.TextUtil;
 
 import java.lang.reflect.Field;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,6 +72,8 @@ public class TableUtil {
                     return "text";
                 }
                 return "varchar(" + column.length() + ")";
+            case "Date":
+                return "datetime";
         }
         return null;
     }
@@ -140,6 +145,28 @@ public class TableUtil {
 
         sql = sql.substring(0, sql.length() - 1) + ";";
         return sql;
+    }
+
+    public static String getValue(Field field, Object entity) throws IllegalAccessException {
+        if (field.getType().getName().equals("java.util.Date")) {
+            return DateUtil.toDateTimeText((Date) field.get(entity));
+        } else {
+            return field.get(entity) + "";
+        }
+    }
+
+    public static void setValue(Field field, Object entity, Object value)
+            throws IllegalAccessException {
+        if (field.getType().getName().equals("java.util.Date")) {
+            try {
+                Timestamp timestamp = (Timestamp) value;
+                field.set(entity, new Date(timestamp.getTime()));
+            } catch (DateUtil.DateTextSyntaxErrorException e) {
+                e.printStackTrace();
+            }
+        } else {
+            field.set(entity, value);
+        }
     }
 
 }

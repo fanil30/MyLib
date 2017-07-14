@@ -6,6 +6,8 @@ import com.wang.db2.Id;
 import com.wang.db2.Ignore;
 import com.wang.db2.Reference;
 
+import java.util.Date;
+
 /**
  * by wangrongjun on 2017/6/14.
  */
@@ -25,16 +27,21 @@ public class Employee {
     @Reference
     private Position position;
     private double salary;
+    private Date startTime;//入职时间
+
+    private String departmentName;
 
     public Employee() {
     }
 
-    public Employee(int employeeId, String name, int gender, Position position, double salary) {
+    public Employee(int employeeId, String name, int gender, Position position, double salary, 
+                    Date startTime) {
         this.employeeId = employeeId;
         this.name = name;
         this.gender = gender;
         this.position = position;
         this.salary = salary;
+        this.startTime = startTime;
     }
 
     public int getEmployeeId() {
@@ -75,5 +82,17 @@ public class Employee {
 
     public void setSalary(double salary) {
         this.salary = salary;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public Date getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Date startTime) {
+        this.startTime = startTime;
     }
 }

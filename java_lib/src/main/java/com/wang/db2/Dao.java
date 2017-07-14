@@ -34,6 +34,6 @@ public interface Dao<T> {
     /**
      * 查询当前数据表的符合where条件的记录的数量
      */
-    int queryCount(Where where);
+    long queryCount(Where where);
 
 }

@@ -25,6 +25,11 @@ public abstract class OADao<T> extends BaseDao<T> {
                 OADatabaseConfig.printSql, OADatabaseConfig.printResult);
     }
 
+    @Override
+    public boolean executeUpdate(String sql) {
+        return super.executeUpdate(sql);
+    }
+
     private static class OADatabaseConfig {
         static String username = "root";
         static String password = "21436587";

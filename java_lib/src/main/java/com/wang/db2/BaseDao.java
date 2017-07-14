@@ -3,8 +3,11 @@ package com.wang.db2;
 import com.wang.java_util.GsonUtil;
 import com.wang.java_util.LogUtil;
 import com.wang.java_util.ReflectUtil;
+import com.wang.java_util.TextUtil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,13 +17,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseDao<T> implements Dao<T> {
+public class BaseDao<T> implements Dao<T> {
 
     private String username;
     private String password;
     private String dbName;
     private static boolean printSql;
     private static boolean printResult;
+    private Class<T> entityClass;
     protected Connection conn;
     private PreparedStatement ps;
     private ResultSet rs;
@@ -38,9 +42,19 @@ public abstract class BaseDao<T> implements Dao<T> {
         BaseDao.printResult = printResult;
     }
 
-    protected abstract Class<T> getEntityClass();
+    protected Class<T> getEntityClass() {
+        if (entityClass == null) {
+            Class<? extends BaseDao> cls = this.getClass();
+            ParameterizedType type = (ParameterizedType) cls.getGenericSuperclass();
+            Type[] types = type.getActualTypeArguments();
+            if (types != null && types.length > 0) {
+                entityClass = (Class<T>) types[0];
+            }
+        }
+        return entityClass;
+    }
 
-    protected Connection getConnection() {
+    public Connection getConnection() {
         Connection connection = null;
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -73,7 +87,14 @@ public abstract class BaseDao<T> implements Dao<T> {
         return ReflectUtil.findByAnno(getEntityClass(), Id.class);
     }
 
+    /**
+     * @param entity 外键对象
+     * @return 外键对象为空，返回0。外键对象不为空且存在@Id变量，返回该变量的值。否则返回-1。
+     */
     private int getIdValue(Object entity) {
+        if (entity == null) {
+            return 0;
+        }
         for (Field field : entity.getClass().getDeclaredFields()) {
             if (field.getAnnotation(Id.class) != null) {
                 field.setAccessible(true);
@@ -84,7 +105,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                 }
             }
         }
-        return 0;
+        return -1;
     }
 
     private void setIdValue(Object entity, int value) {
@@ -118,7 +139,15 @@ public abstract class BaseDao<T> implements Dao<T> {
         }
     }
 
-    protected boolean executeUpdate(String sql) {
+    private static void printResult(long count) {
+        if (printResult) {
+            System.out.println("\n----------- begin -----------");
+            GsonUtil.printFormatJson("count: " + count);
+            System.out.println("-----------  end  -----------\n");
+        }
+    }
+
+    protected synchronized boolean executeUpdate(String sql) {
         boolean succeed = false;
         try {
             conn = getConnection();
@@ -163,7 +192,7 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public boolean insert(T entity) {
+    public synchronized boolean insert(T entity) {
         boolean succeed = false;
         String tableName = getTableName();
         String columnStringList = "";// (userId,username,password)
@@ -179,13 +208,16 @@ public abstract class BaseDao<T> implements Dao<T> {
 
             field.setAccessible(true);
             try {
-                columnStringList += "," + field.getName();
                 if (field.getAnnotation(Reference.class) != null) {
                     Object innerEntity = field.get(entity);
                     int idValue = getIdValue(innerEntity);
-                    valueList += ",'" + idValue + "'";
+                    if (idValue > 0) {// 外键id值大于0才把外键id设置到sql语句中
+                        columnStringList += "," + field.getName();
+                        valueList += ",'" + idValue + "'";
+                    }
                 } else {
-                    String value = field.get(entity) + "";
+                    columnStringList += "," + field.getName();
+                    String value = TableUtil.getValue(field, entity);
                     valueList += ",'" + formatter.format(value) + "'";
                 }
             } catch (IllegalAccessException e) {
@@ -219,7 +251,7 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public boolean delete(Where where) {
+    public synchronized boolean delete(Where where) {
         boolean succeed = false;
         String tableName = getTableName();
         String sql;
@@ -276,7 +308,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                     int idValue = getIdValue(innerEntity);
                     setValueList += "'" + idValue + "'";
                 } else {
-                    String value = field.get(entity) + "";
+                    String value = TableUtil.getValue(field, entity);
                     setValueList += "'" + formatter.format(value) + "'";
                 }
             } catch (IllegalAccessException e) {
@@ -344,7 +376,7 @@ public abstract class BaseDao<T> implements Dao<T> {
                             }
                         }
                         if (require) {
-                            field.set(entity, rs.getObject(field.getName()));
+                            TableUtil.setValue(field, entity, rs.getObject(field.getName()));
                         }
                     } else {
                         // 查询外键对象并赋值
@@ -354,7 +386,11 @@ public abstract class BaseDao<T> implements Dao<T> {
                         innerIdField.setAccessible(true);
                         String innerIdName = innerIdField.getName();
                         Object innerIdValue = rs.getObject(field.getName());
-
+                        // 如果id<=0，则外键对象为null，没必要去判断忽略和查询外键对象，结束本次循环
+                        if (innerIdValue == null || Integer.parseInt(innerIdValue + "") <= 0) {
+                            continue;
+                        }
+                        // 判断当前变量是否要忽略
                         boolean ignore = false;
                         if (ignoreReferenceList != null && ignoreReferenceList.size() > 0) {
                             for (String ignoreName : ignoreReferenceList) {
@@ -419,6 +455,28 @@ public abstract class BaseDao<T> implements Dao<T> {
         return list;
     }
 
+    /**
+     * @param sql 必须以select count(*) ...开头
+     */
+    protected long executeQueryCount(String sql) {
+        printSql(sql);
+        long count = 0;
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close();
+        }
+        printResult(count);
+        return count;
+    }
+
     @Override
     public List<T> query(Query query) {
         String sql;
@@ -433,6 +491,9 @@ public abstract class BaseDao<T> implements Dao<T> {
         if (orderBy != null && orderBy.length > 0) {
             sql += " order by ";
             for (String s : orderBy) {
+                if (TextUtil.isEmpty(s)) {//防止orderBy数组不为空，但元素为空的情况
+                    continue;
+                }
                 if (s.startsWith("-")) {
                     sql += s.substring(1) + " desc,";
                 } else {
@@ -476,22 +537,10 @@ public abstract class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public int queryCount(Where where) {
-        int count = 0;
+    public long queryCount(Where where) {
         String sql = "select count(*) from " + getTableName();
         sql += where == null || where.size() == 0 ? ";" : (" where " + where + ";");
-        try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
-            if (rs.next()) {
-                count = rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            close();
-        }
-        return count;
+        return executeQueryCount(sql);
     }
+
 }

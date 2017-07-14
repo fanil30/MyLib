@@ -43,32 +43,84 @@ public class Where {
         return expressionList.size();
     }
 
-    public Where add(String name, String value, QueryMode mode, QueryLogic logic) {
-        Expression expression = new Expression(name, value, mode, logic);
-        expressionList.add(expression);
+    public Where equal(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.EQUAL, QueryLogic.AND));
         return this;
     }
 
-    public Where add(String name, String value, QueryMode mode) {
-        Expression expression = new Expression(name, value, mode, QueryLogic.AND);
-        expressionList.add(expression);
+    public Where notEqual(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.NOT_EQUAL, QueryLogic.AND));
         return this;
     }
 
-    public Where add(String name, String value, QueryLogic logic) {
-        Expression expression = new Expression(name, value, QueryMode.EQUAL, logic);
-        expressionList.add(expression);
+    public Where less(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.LESS, QueryLogic.AND));
         return this;
     }
 
-    public Where add(String name, String value) {
-        Expression expression = new Expression(name, value, QueryMode.EQUAL, QueryLogic.AND);
-        expressionList.add(expression);
+    public Where lessEqual(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.LESS_EQUAL, QueryLogic.AND));
         return this;
     }
+
+    public Where more(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.MORE, QueryLogic.AND));
+        return this;
+    }
+
+    public Where moreEqual(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.MORE_EQUAL, QueryLogic.AND));
+        return this;
+    }
+
+    public Where like(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.LIKE, QueryLogic.AND));
+        return this;
+    }
+
+    public Where notLike(String name, String value) {
+        expressionList.add(new Expression(name, value, QueryMode.NOT_LIKE, QueryLogic.AND));
+        return this;
+    }
+
+    public Where and() {
+        expressionList.get(size() - 1).queryLogic = QueryLogic.AND;
+        return this;
+    }
+
+    public Where or() {
+        expressionList.get(size() - 1).queryLogic = QueryLogic.OR;
+        return this;
+    }
+
+    /*
+        public Where add(String name, String value, QueryMode mode, QueryLogic logic) {
+            Expression expression = new Expression(name, value, mode, logic);
+            expressionList.add(expression);
+            return this;
+        }
+    
+        public Where add(String name, String value, QueryMode mode) {
+            Expression expression = new Expression(name, value, mode, QueryLogic.AND);
+            expressionList.add(expression);
+            return this;
+        }
+    
+        public Where add(String name, String value, QueryLogic logic) {
+            Expression expression = new Expression(name, value, QueryMode.EQUAL, logic);
+            expressionList.add(expression);
+            return this;
+        }
+    
+        public Where add(String name, String value) {
+            Expression expression = new Expression(name, value, QueryMode.EQUAL, QueryLogic.AND);
+            expressionList.add(expression);
+            return this;
+        }
+    */
 
     public static Where build(String whereName, String whereValue) {
-        return new Where().add(whereName, whereValue);
+        return new Where().equal(whereName, whereValue);
     }
 
     /**
@@ -129,10 +181,10 @@ public class Where {
     }
 
     private class Expression {
-        public String name;
-        public String value;
-        public QueryMode queryMode;
-        public QueryLogic queryLogic;
+        String name;
+        String value;
+        QueryMode queryMode;
+        QueryLogic queryLogic;
 
         Expression(String name, String value, QueryMode queryMode,
                    QueryLogic queryLogic) {

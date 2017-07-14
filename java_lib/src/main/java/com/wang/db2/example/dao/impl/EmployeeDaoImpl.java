@@ -1,5 +1,7 @@
 package com.wang.db2.example.dao.impl;
 
+import com.wang.db2.Query;
+import com.wang.db2.Where;
 import com.wang.db2.example.bean.Employee;
 import com.wang.db2.example.dao.EmployeeDao;
 import com.wang.db2.example.dao.OADao;
@@ -28,4 +30,17 @@ public class EmployeeDaoImpl extends OADao<Employee> implements EmployeeDao {
         // maxQueryForeignKeyLevel=1：只查到Employee中的Position就够了。不再继续查询Position中的Department
         return executeQuery(sql, 1, null, null);
     }
+
+    /**
+     * 查询月薪在4500以上的男性或者4500以下的女性
+     */
+    @Override
+    public List<Employee> queryNew() {
+        Where where = new Where().
+                more("salary", "4500").and().equal("gender", Employee.GENDER_MAN + "").
+                or().
+                less("salary", "4500").and().equal("gender", Employee.GENDER_WOMAN + "");
+        return query(Query.build(where).maxQueryForeignKeyLevel(1));
+    }
+
 }

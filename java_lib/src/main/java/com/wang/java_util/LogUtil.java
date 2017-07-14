@@ -16,6 +16,12 @@ public class LogUtil {
         return s;
     }
 
+    public static String printEntity(Object entity) {
+        String s = get(GsonUtil.formatJson(entity), 2, null);
+        System.out.println(s);
+        return s;
+    }
+
     /**
      * @param ignoreClass 对于ignoreClass列表的任意一个类，遍历方法调用栈时都需要跳过该类及其子类。
      *                    例如，有继承关系：BaseDao<-OADao<-EmployeeDaoImpl。其中LogUtil.print()

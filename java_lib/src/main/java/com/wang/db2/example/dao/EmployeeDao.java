@@ -13,4 +13,9 @@ public interface EmployeeDao extends Dao<Employee> {
 
     List<Employee> queryByDepartmentId(int departmentId);
 
+    /**
+     * 查询月薪在4500以上的男性或者4500以下的女性
+     */
+    List<Employee> queryNew();
+
 }

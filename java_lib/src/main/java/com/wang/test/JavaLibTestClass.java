@@ -1,11 +1,11 @@
 package com.wang.test;
 
-import com.wang.java_util.LogUtil;
+import java.util.Date;
 
 public class JavaLibTestClass {
 
-    public static void main(String[] args) throws Exception {
-        LogUtil.print("hello");
+    public static void main(String[] args) {
+        System.out.println(new Date());
     }
 
 }
