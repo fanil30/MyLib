@@ -134,6 +134,9 @@ public class Where {
         String sql = "";
         for (int i = 0; i < size(); i++) {
             Expression expression = expressionList.get(i);
+            if (expression.value == null) {// username='null' 无意义，忽略
+                continue;
+            }
             // 1.字段名字
             sql += expression.name;
             // 2.查询模式

@@ -91,7 +91,7 @@ public class BaseDao<T> implements Dao<T> {
      * @param entity 外键对象
      * @return 外键对象为空，返回0。外键对象不为空且存在@Id变量，返回该变量的值。否则返回-1。
      */
-    private int getIdValue(Object entity) {
+    private long getIdValue(Object entity) {
         if (entity == null) {
             return 0;
         }
@@ -99,7 +99,17 @@ public class BaseDao<T> implements Dao<T> {
             if (field.getAnnotation(Id.class) != null) {
                 field.setAccessible(true);
                 try {
-                    return field.getInt(entity);
+                    switch (field.getType().getSimpleName()) {
+                        case "int":
+                            return field.getInt(entity);
+                        case "Integer":
+                            return (Integer) field.get(entity);
+                        case "long":
+                            return field.getLong(entity);
+                        case "Long":
+                            return (Long) field.get(entity);
+                    }
+                    throw new RuntimeException("id type must be int!");
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -210,7 +220,7 @@ public class BaseDao<T> implements Dao<T> {
             try {
                 if (field.getAnnotation(Reference.class) != null) {
                     Object innerEntity = field.get(entity);
-                    int idValue = getIdValue(innerEntity);
+                    long idValue = getIdValue(innerEntity);
                     if (idValue > 0) {// 外键id值大于0才把外键id设置到sql语句中
                         columnStringList += "," + field.getName();
                         valueList += ",'" + idValue + "'";
@@ -277,7 +287,7 @@ public class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public boolean deleteById(int id) {
+    public boolean deleteById(long id) {
         String idName = getIdField().getName();
         return delete(Where.build(idName, id + ""));
     }
@@ -305,7 +315,7 @@ public class BaseDao<T> implements Dao<T> {
                 setValueList += "," + field.getName() + "=";
                 if (field.getAnnotation(Reference.class) != null) {
                     Object innerEntity = field.get(entity);
-                    int idValue = getIdValue(innerEntity);
+                    long idValue = getIdValue(innerEntity);
                     setValueList += "'" + idValue + "'";
                 } else {
                     String value = TableUtil.getValue(field, entity);
@@ -522,7 +532,7 @@ public class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public T queryById(int id) {
+    public T queryById(long id) {
         Where where = Where.build(getIdField().getName(), id + "");
         List<T> list = query(where);
         if (list != null && list.size() > 0) {

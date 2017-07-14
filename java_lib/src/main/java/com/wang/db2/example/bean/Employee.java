@@ -20,13 +20,13 @@ public class Employee {
     public static final int GENDER_WOMAN = 0;
 
     @Id(autoIncrement = false)
-    private int employeeId;
+    private Long employeeId;
     @Column(length = 20, nullable = false)
     private String name;
-    private int gender;
+    private Long gender;
     @Reference
     private Position position;
-    private double salary;
+    private Double salary;
     private Date startTime;//入职时间
 
     private String departmentName;
@@ -34,7 +34,7 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(int employeeId, String name, int gender, Position position, double salary, 
+    public Employee(Long employeeId, String name, Long gender, Position position, Double salary,
                     Date startTime) {
         this.employeeId = employeeId;
         this.name = name;
@@ -44,11 +44,11 @@ public class Employee {
         this.startTime = startTime;
     }
 
-    public int getEmployeeId() {
+    public Long getEmployeeId() {
         return employeeId;
     }
 
-    public void setEmployeeId(int employeeId) {
+    public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
     }
 
@@ -68,19 +68,19 @@ public class Employee {
         this.position = position;
     }
 
-    public int getGender() {
+    public Long getGender() {
         return gender;
     }
 
-    public void setGender(int gender) {
+    public void setGender(Long gender) {
         this.gender = gender;
     }
 
-    public double getSalary() {
+    public Double getSalary() {
         return salary;
     }
 
-    public void setSalary(double salary) {
+    public void setSalary(Double salary) {
         this.salary = salary;
     }
 

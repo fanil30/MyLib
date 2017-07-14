@@ -49,20 +49,30 @@ public class TableUtil {
 
     /**
      * String -> varchar(20)
-     * User -> int
+     * User -> int/bigint
      */
     private static String getType(Field field) {
         if (field.getAnnotation(Reference.class) != null) {
-            return "int";
+            Field innerIdField = ReflectUtil.findByAnno(field.getType(), Id.class);
+            switch (innerIdField.getType().getSimpleName()) {
+                case "int":
+                case "Integer":
+                    return "int";
+                case "long":
+                case "Long":
+                    return "bigint";
+            }
         }
         switch (field.getType().getSimpleName()) {
             case "int":
             case "Integer":
+                return "int";
             case "long":
             case "Long":
-                return "int";
+                return "bigint";
             case "float":
             case "Float":
+                return "float";
             case "double":
             case "Double":
                 return "double";

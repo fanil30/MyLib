@@ -52,13 +52,13 @@ public class OADaoTest {
         positionDao.insert(销售员);
         positionDao.insert(销售总监);
 
-        Employee 张三 = new Employee(1001, "张三111", 1, 程序员, 8000, DateUtil.toDate("2014-06-07 00:00:00"));
-        Employee 李四 = new Employee(1002, "李四", 0, 程序员, 7000, DateUtil.toDate("2014-06-08 00:00:00"));
-        Employee 王五 = new Employee(1003, "王五", 1, 技术总监, 18000, DateUtil.toDate("2014-06-09 00:00:00"));
-        Employee 赵六 = new Employee(1004, "赵六", 0, 销售员, 4000, DateUtil.toDate("2014-06-10 00:00:00"));
-        Employee 田七 = new Employee(1005, "田七", 0, 销售员, 5000, DateUtil.toDate("2014-06-11 00:00:00"));
-        Employee 陆八 = new Employee(1006, "陆八", 1, 销售总监, 15000, DateUtil.toDate("2014-09-01 00:00:00"));// 刚入职，还未分配职位
-        Employee 薄九 = new Employee(1007, "薄九", 0, null, 2000, DateUtil.toDate("2014-09-02 00:00:00"));// 实习生刚入职，还未分配职位
+        Employee 张三 = new Employee(1001L, "张三111", 1L, 程序员, 8000d, DateUtil.toDate("2014-06-07 00:00:00"));
+        Employee 李四 = new Employee(1002L, "李四", 0L, 程序员, 7000d, DateUtil.toDate("2014-06-08 00:00:00"));
+        Employee 王五 = new Employee(1003L, "王五", 1L, 技术总监, 18000d, DateUtil.toDate("2014-06-09 00:00:00"));
+        Employee 赵六 = new Employee(1004L, "赵六", 0L, 销售员, 4000d, DateUtil.toDate("2014-06-10 00:00:00"));
+        Employee 田七 = new Employee(1005L, "田七", 0L, 销售员, 5000d, DateUtil.toDate("2014-06-11 00:00:00"));
+        Employee 陆八 = new Employee(1006L, "陆八", 1L, 销售总监, 15000d, DateUtil.toDate("2014-09-01 00:00:00"));
+        Employee 薄九 = new Employee(1007L, "薄九", 0L, null, 2000d, DateUtil.toDate("2014-09-02 00:00:00"));// 实习生刚入职，还未分配职位
         employeeDao.insert(张三);
         employeeDao.insert(李四);
         employeeDao.insert(王五);
@@ -68,15 +68,16 @@ public class OADaoTest {
         employeeDao.insert(薄九);
         张三.setName("张三");
         employeeDao.update(张三);
-        赵六.setGender(1);
+        赵六.setGender(1L);
         employeeDao.update(赵六);
+        employeeDao.deleteById(田七.getEmployeeId());
 
         employeeLoginDao.insert(new EmployeeLogin(张三, "123"));
         employeeLoginDao.insert(new EmployeeLogin(李四, "123"));
         employeeLoginDao.insert(new EmployeeLogin(王五, "123"));
         employeeLoginDao.insert(new EmployeeLogin(赵六, "123"));
-        employeeLoginDao.insert(new EmployeeLogin(田七, "123"));
         employeeLoginDao.insert(new EmployeeLogin(陆八, "123"));
+        employeeLoginDao.insert(new EmployeeLogin(薄九, "123"));
 
         employeeDao.queryByDepartmentId(2);
         employeeDao.query(new Query().

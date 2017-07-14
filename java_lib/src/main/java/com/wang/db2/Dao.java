@@ -14,13 +14,13 @@ public interface Dao<T> {
 
     boolean delete(Where where);
 
-    boolean deleteById(int id);
+    boolean deleteById(long id);
 
     boolean deleteAll();
 
     boolean update(T entity);
 
-    T queryById(int id);
+    T queryById(long id);
 
     List<T> queryAll();
 
