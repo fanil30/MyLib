@@ -32,4 +32,11 @@ public class Dbcp {
         return basicDataSource.getConnection();
     }
 
+    public static void close() throws SQLException {
+        if (basicDataSource != null) {
+            basicDataSource.close();
+            basicDataSource = null;
+        }
+    }
+
 }

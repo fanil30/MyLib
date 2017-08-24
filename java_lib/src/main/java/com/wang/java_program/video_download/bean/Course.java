@@ -1,5 +1,8 @@
 package com.wang.java_program.video_download.bean;
 
+import com.wang.java_util.ListUtil;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class Course {
@@ -9,6 +12,31 @@ public class Course {
     private List<Video> videos;
     private List<CourseDataFile> courseDataFiles;// 课程资料
     private String courseHint;// 课程学习提示
+
+    public static Course getCourseListExample() {
+        Course course = new Course();
+        course.setCourseName("courseName");
+        course.setChapterNames(ListUtil.build("chapter1", "chapter2"));
+        course.setCourseHint("courseHint");
+
+        List<Video> videoList = new ArrayList<>();
+        Video video = new Video();
+        video.setTitle("video1");
+        video.setRealUrl("http://www.baidu.com/");
+        videoList.add(video);
+        video = new Video();
+        video.setTitle("video2");
+        video.setRealUrl("http://www.baidu.com/");
+        videoList.add(video);
+
+        List<CourseDataFile> dataFileList = new ArrayList<>();
+        dataFileList.add(new CourseDataFile("dataFile1", "http://www.baidu.com/"));
+        dataFileList.add(new CourseDataFile("dataFile2", "http://www.baidu.com/"));
+
+        course.setVideos(videoList);
+        course.setCourseDataFiles(dataFileList);
+        return course;
+    }
 
     public String getCourseName() {
         return courseName;

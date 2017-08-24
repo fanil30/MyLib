@@ -1,6 +1,14 @@
-package com.wang.db2;
+package com.wang.db3;
 
+import com.wang.db.connection.Dbcp;
+import com.wang.db2.Id;
+import com.wang.db2.Ignore;
+import com.wang.db2.Query;
+import com.wang.db2.Reference;
+import com.wang.db2.Where;
+import com.wang.db3.db.IDataBase;
 import com.wang.java_util.GsonUtil;
+import com.wang.java_util.ListUtil;
 import com.wang.java_util.LogUtil;
 import com.wang.java_util.ReflectUtil;
 import com.wang.java_util.TextUtil;
@@ -21,25 +29,20 @@ public class BaseDao<T> implements Dao<T> {
 
     protected String username;
     protected String password;
-    private String dbName;
+    protected IDataBase db;
     private static boolean printSql;
     private static boolean printResult;
-    protected Class<T> entityClass;
-    protected Connection conn;
-    private PreparedStatement ps;
-    private ResultSet rs;
-    /**
-     * 防止输入的值中含有非法字符如单引号，末尾的斜杠等。防止sql注入攻击。
-     */
-    protected InputValueFormatter formatter = new InputValueFormatter.InputValueFormatterImpl();
+    private boolean useDbcp;
 
-    public BaseDao(String username, String password, String databaseName,
-                   boolean printSql, boolean printResult) {
-        this.username = username;
-        this.password = password;
-        this.dbName = databaseName;
-        BaseDao.printSql = printSql;
-        BaseDao.printResult = printResult;
+    protected Class<T> entityClass;
+
+    public BaseDao(Config config) {
+        this.username = config.getUsername();
+        this.password = config.getPassword();
+        this.db = config.getDb();
+        BaseDao.printSql = config.isPrintSql();
+        BaseDao.printResult = config.isPrintResult();
+        useDbcp = config.isUseDbcp();
     }
 
     protected Class<T> getEntityClass() {
@@ -55,27 +58,25 @@ public class BaseDao<T> implements Dao<T> {
     }
 
     public Connection getConnection() {
-        Connection connection = null;
         try {
-            Class.forName("com.mysql.jdbc.IDriver");
-            connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/" + dbName + "?characterEncoding=utf-8",
-                    username, password);
+            if (useDbcp) {
+                return Dbcp.getConnection(db.getUrl(), db.getDriverName(), username, password);
+            } else {
+                Class.forName(db.getDriverName());
+                return DriverManager.getConnection(db.getUrl(), username, password);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return connection;
     }
 
-    public void close() {
+    public void close(Connection conn) {
+        if (useDbcp) {
+            return;
+        }
         try {
-            if (rs != null) {
-                rs.close();
-            }
-            if (ps != null) {
-                ps.close();
-            }
-            if (conn != null) {
+            if (conn != null && !conn.isClosed()) {
                 conn.close();
             }
         } catch (SQLException e) {
@@ -83,50 +84,13 @@ public class BaseDao<T> implements Dao<T> {
         }
     }
 
+    private Field idField;
+
     private Field getIdField() {
-        return ReflectUtil.findByAnno(getEntityClass(), Id.class);
-    }
-
-    /**
-     * @param entity 外键对象
-     * @return 外键对象为空，返回0。外键对象不为空且存在@Id变量，返回该变量的值。否则返回-1。
-     */
-    private long getIdValue(Object entity) {
-        if (entity == null) {
-            return 0;
+        if (idField == null) {
+            idField = ReflectUtil.findByAnno(getEntityClass(), Id.class);
         }
-        for (Field field : entity.getClass().getDeclaredFields()) {
-            if (field.getAnnotation(Id.class) != null) {
-                field.setAccessible(true);
-                try {
-                    switch (field.getType().getSimpleName()) {
-                        case "int":
-                            return field.getInt(entity);
-                        case "Integer":
-                            return (Integer) field.get(entity);
-                        case "long":
-                            return field.getLong(entity);
-                        case "Long":
-                            return (Long) field.get(entity);
-                    }
-                    throw new RuntimeException("id type must be int!");
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return -1;
-    }
-
-    private void setIdValue(Object entity, int value) {
-        Field idField = getIdField();
-        assert idField != null;
-        idField.setAccessible(true);
-        try {
-            idField.setInt(entity, value);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
+        return idField;
     }
 
     private String getTableName() {
@@ -136,7 +100,7 @@ public class BaseDao<T> implements Dao<T> {
     private static void printSql(String sql) {
         if (printSql) {
             System.out.println();
-            LogUtil.print(sql, "com.wang.db2.BaseDao");
+            LogUtil.print(sql, "com.wang.db3.BaseDao");
             System.out.println();
         }
     }
@@ -157,133 +121,84 @@ public class BaseDao<T> implements Dao<T> {
         }
     }
 
-    protected synchronized boolean executeUpdate(String sql) {
-        boolean succeed = false;
-        try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            if (ps.executeUpdate() > 0) {
-                succeed = true;
+    protected boolean executeUpdate(String sql) {
+        return executeUpdate(ListUtil.build(sql));
+    }
+
+    protected synchronized boolean executeUpdate(List<String> sqlList) {
+        boolean succeed = true;
+        Connection conn = getConnection();
+        for (String sql : sqlList) {
+            if (TextUtil.isEmpty(sql)) {
+                continue;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            succeed = false;
-        } finally {
-            close();
+            printSql(sql);
+            try {
+                Statement stat = conn.createStatement();
+                stat.executeUpdate(sql);
+                stat.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                succeed = false;
+            }
         }
+        close(conn);
         return succeed;
     }
 
     @Override
     public boolean createTable() {
-        String sql = TableUtil.createTableSql(getEntityClass());
-        printSql(sql);
-        return executeUpdate(sql);
+        List<String> sqlList = db.createTableSql(getEntityClass());
+        return executeUpdate(sqlList);
     }
 
     @Override
     public boolean dropTable() {
-        String sql = TableUtil.dropTableSql(getEntityClass());
-        printSql(sql);
-        return executeUpdate(sql);
-    }
-
-    @Override
-    public boolean createForeignKey() {
-        boolean succeed = true;
-        List<String> sqlList = TableUtil.foreignKeySql(getEntityClass());
-        for (String sql : sqlList) {
-            printSql(sql);
-            if (!executeUpdate(sql)) {
-                succeed = false;
-            }
-        }
-        return succeed;
+        List<String> sqlList = db.dropTableSql(getEntityClass());
+        return executeUpdate(sqlList);
     }
 
     @Override
     public synchronized boolean insert(T entity) {
         boolean succeed = false;
-        String tableName = getTableName();
-        String columnStringList = "";// (userId,username,password)
-        String valueList = "";// ('1','wang','123')
-        for (Field field : getEntityClass().getDeclaredFields()) {
-            if (field.getAnnotation(Ignore.class) != null) {
-                continue;
-            }
-            Id idAnno = field.getAnnotation(Id.class);
-            if (idAnno != null && idAnno.autoIncrement()) {
-                continue;
-            }
-
-            field.setAccessible(true);
-            try {
-                if (field.getAnnotation(Reference.class) != null) {
-                    Object innerEntity = field.get(entity);
-                    long idValue = getIdValue(innerEntity);
-                    if (idValue > 0) {// 外键id值大于0才把外键id设置到sql语句中
-                        columnStringList += "," + field.getName();
-                        valueList += ",'" + idValue + "'";
-                    }
-                } else {
-                    columnStringList += "," + field.getName();
-                    String value = TableUtil.getValue(field, entity);
-                    valueList += ",'" + formatter.format(value) + "'";
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        columnStringList = columnStringList.substring(1);
-        valueList = valueList.substring(1);
-
-        String sql = "insert into " +
-                tableName + " (" + columnStringList + ") values (" + valueList + ");";
+        String sql = db.insertSql(entity);
         printSql(sql);
+        Connection conn = getConnection();
         try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            ps.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                long l = (long) rs.getObject(1);
-                int id = (int) l;
-                setIdValue(entity, id);
+            Field idField = getIdField();
+            idField.setAccessible(true);
+            boolean autoIncrement = idField.getAnnotation(Id.class).autoIncrement();
+            long id = db.insert(conn, entity.getClass().getSimpleName(), autoIncrement, sql);
+            if (autoIncrement) {// 如果id是自增，才把insert返回的id设置进entity
+                switch (idField.getType().getSimpleName()) {
+                    case "int":
+                    case "Integer":
+                        idField.setInt(entity, (int) id);
+                        break;
+                    case "long":
+                    case "Long":
+                        idField.setLong(entity, id);
+                        break;
+                }
             }
             succeed = true;
         } catch (SQLException e) {
             e.printStackTrace();
             succeed = false;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            succeed = false;
         } finally {
-            close();
+            close(conn);
         }
         return succeed;
     }
 
     @Override
     public synchronized boolean delete(Where where) {
-        boolean succeed = false;
-        String tableName = getTableName();
-        String sql;
-        if (where == null || where.size() == 0) {
-            sql = "delete from " + tableName + ";";
-        } else {
-            sql = "delete from " + tableName + " where " + where + ";";
-        }
-        printSql(sql);
-        try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            if (ps.executeUpdate() > 0) {
-                succeed = true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            succeed = false;
-        } finally {
-            close();
-        }
-        return succeed;
+        db.deleteSql(getEntityClass());
+        String sql = db.getSqlCreator().deleteSql(getTableName(), where);
+        return executeUpdate(sql);
     }
 
     @Override
@@ -299,36 +214,7 @@ public class BaseDao<T> implements Dao<T> {
 
     @Override
     public boolean update(T entity) {
-        String tableName = getTableName();
-        String setValueList = "";// (userId='1',username='wang',password='123')
-        for (Field field : getEntityClass().getDeclaredFields()) {
-            if (field.getAnnotation(Ignore.class) != null) {
-                continue;
-            }
-            Id idAnno = field.getAnnotation(Id.class);
-            if (idAnno != null) {// don't need: && idAnno.autoIncrement()
-                continue;
-            }
-
-            field.setAccessible(true);
-            try {
-                setValueList += "," + field.getName() + "=";
-                if (field.getAnnotation(Reference.class) != null) {
-                    Object innerEntity = field.get(entity);
-                    long idValue = getIdValue(innerEntity);
-                    setValueList += "'" + idValue + "'";
-                } else {
-                    String value = TableUtil.getValue(field, entity);
-                    setValueList += "'" + formatter.format(value) + "'";
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        setValueList = setValueList.substring(1);
-
-        String sql = "update " + tableName + " set " + setValueList + " where " +
-                getIdField().getName() + "='" + getIdValue(entity) + "';";
+        String sql = db.updateSql(entity);
         printSql(sql);
         return executeUpdate(sql);
     }
@@ -350,13 +236,16 @@ public class BaseDao<T> implements Dao<T> {
      *                                      User）时，shop对象的所有属性都有值，shop对象的
      *                                      user对象中，只有username变量有值。
      */
-    private static <T> List<T> executeQuery(String sql, Class<T> entityClass, Connection conn,
+    private static <T> List<T> executeQuery(String sql, Class<T> entityClass,
+                                            Connection conn, IDataBase db,
                                             int currentLevel, int maxQueryForeignKeyLevel,
                                             List<String> ignoreReferenceList,
                                             List<String> requiredReferenceVariableList) {
         if (currentLevel > maxQueryForeignKeyLevel) {
             return null;
         }
+
+        printSql(sql);
 
         List<T> entityList = new ArrayList<>();
         PreparedStatement ps = null;
@@ -386,7 +275,7 @@ public class BaseDao<T> implements Dao<T> {
                             }
                         }
                         if (require) {
-                            TableUtil.setValue(field, entity, rs.getObject(field.getName()));
+                            db.setRsValueToEntity(field, entity, rs.getObject(field.getName()));
                         }
                     } else {
                         // 查询外键对象并赋值
@@ -413,13 +302,15 @@ public class BaseDao<T> implements Dao<T> {
                         // 如果到了最后一次的递归或者需要忽略该外键对象，就只查询外键对象的id值
                         if (currentLevel >= maxQueryForeignKeyLevel || ignore) {
                             Object innerEntity = innerEntityClass.newInstance();
-                            innerIdField.set(innerEntity, innerIdValue);
+                            db.setRsValueToEntity(innerIdField, innerEntity, innerIdValue);
+//                            innerIdField.set(innerEntity, innerIdValue);
                             field.set(entity, innerEntity);
                         } else {// 否则查询外键对象所有属性的值
-                            String innerSql = "select * from " + innerEntityClass.getSimpleName() +
-                                    " where " + innerIdName + "='" + innerIdValue + "';";
+                            String innerTableName = innerEntityClass.getSimpleName();
+                            Query query = Query.build(Where.build(innerIdName, innerIdValue + ""));
+                            String innerSql = db.getSqlCreator().querySql(innerTableName, query);
                             List innerEntityList = executeQuery(innerSql, innerEntityClass, conn,
-                                    currentLevel + 1, maxQueryForeignKeyLevel,
+                                    db, currentLevel + 1, maxQueryForeignKeyLevel,
                                     ignoreReferenceList, requiredReferenceVariableList);
                             if (innerEntityList != null && innerEntityList.size() > 0) {
                                 field.set(entity, innerEntityList.get(0));
@@ -452,9 +343,8 @@ public class BaseDao<T> implements Dao<T> {
     protected List<T> executeQuery(String sql, int maxQueryForeignKeyLevel,
                                    List<String> ignoreReferenceList,
                                    List<String> requiredReferenceVariableList) {
-        printSql(sql);
         Connection connection = getConnection();
-        List<T> list = executeQuery(sql, getEntityClass(), connection, 0,
+        List<T> list = executeQuery(sql, getEntityClass(), connection, db, 0,
                 maxQueryForeignKeyLevel, ignoreReferenceList, requiredReferenceVariableList);
         try {
             connection.close();
@@ -468,20 +358,22 @@ public class BaseDao<T> implements Dao<T> {
     /**
      * @param sql 必须以select count(*) ...开头
      */
-    protected long executeQueryCount(String sql) {
+    protected int executeQueryCount(String sql) {
         printSql(sql);
-        long count = 0;
+        int count = 0;
+        Connection conn = getConnection();
         try {
-            conn = getConnection();
-            ps = conn.prepareStatement(sql);
-            rs = ps.executeQuery();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 count = rs.getInt(1);
             }
+            rs.close();
+            ps.close();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            close();
+            close(conn);
         }
         printResult(count);
         return count;
@@ -489,37 +381,7 @@ public class BaseDao<T> implements Dao<T> {
 
     @Override
     public List<T> query(Query query) {
-        String sql;
-        Where where = query.getWhere();
-        if (where != null && where.size() > 0) {
-            sql = "select * from " + getTableName() + " where " + where;
-        } else {
-            sql = "select * from " + getTableName();
-        }
-
-        String[] orderBy = query.getOrderBy();
-        if (orderBy != null && orderBy.length > 0) {
-            sql += " order by ";
-            for (String s : orderBy) {
-                if (TextUtil.isEmpty(s)) {//防止orderBy数组不为空，但元素为空的情况
-                    continue;
-                }
-                if (s.startsWith("-")) {
-                    sql += s.substring(1) + " desc,";
-                } else {
-                    sql += s + ",";
-                }
-            }
-            sql = sql.substring(0, sql.length() - 1);//去掉最后多余的逗号
-        }
-
-        int offset = query.getOffset();
-        int rowCount = query.getRowCount();
-        if (rowCount > 0 && offset >= 0) {
-            sql += " limit " + offset + "," + rowCount;
-        }
-
-        sql += ";";
+        String sql = db.getSqlCreator().querySql(getTableName(), query);
         return executeQuery(sql, query.getMaxQueryForeignKeyLevel(),
                 query.getIgnoreReferenceList(),
                 query.getRequiredReferenceVariableList()
@@ -547,9 +409,8 @@ public class BaseDao<T> implements Dao<T> {
     }
 
     @Override
-    public long queryCount(Where where) {
-        String sql = "select count(*) from " + getTableName();
-        sql += where == null || where.size() == 0 ? ";" : (" where " + where + ";");
+    public int queryCount(Where where) {
+        String sql = db.getSqlCreator().queryCountSql(getTableName(), where);
         return executeQueryCount(sql);
     }
 

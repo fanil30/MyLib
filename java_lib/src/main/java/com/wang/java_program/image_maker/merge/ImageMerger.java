@@ -1,4 +1,4 @@
-package com.wang.java_program.image_merger;
+package com.wang.java_program.image_maker.merge;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,7 +27,7 @@ public class ImageMerger {
             }
         });
 
-        if (imageFileList.length == 0) {
+        if (imageFileList == null || imageFileList.length == 0) {
             System.out.println("image(png or jpg) not exists in current directory");
             return;
         }

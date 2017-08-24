@@ -1,4 +1,4 @@
-package com.wang.java_program.image_merger;
+package com.wang.java_program.image_maker.merge;
 
 import java.io.IOException;
 

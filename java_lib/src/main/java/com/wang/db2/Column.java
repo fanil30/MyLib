@@ -11,8 +11,15 @@ public @interface Column {
 
     int length() default 0;
 
+    /**
+     * 小数位数（默认为0，即整数）
+     */
+    int decimalLength() default 0;
+
     boolean nullable() default true;
 
     boolean unique() default false;
+
+    String defaultValue() default "";
 
 }

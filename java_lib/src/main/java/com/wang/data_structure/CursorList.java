@@ -1,5 +1,6 @@
 package com.wang.data_structure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,6 +11,11 @@ public class CursorList<T> {
     private List<T> list;
     private int nextPosition;
 
+    public CursorList() {
+        this.list = new ArrayList<>();
+        nextPosition = 0;
+    }
+
     public CursorList(List<T> list) {
         this.list = list;
         nextPosition = 0;
@@ -19,8 +25,16 @@ public class CursorList<T> {
         nextPosition = 0;
     }
 
+    public void append(T element) {
+        list.add(element);
+    }
+
     public boolean hasElement() {
-        return nextPosition < list.size();
+        return nextPosition >= 0 && nextPosition < list.size();
+    }
+
+    public T previous() {
+        return list.get(nextPosition--);
     }
 
     public T next() {

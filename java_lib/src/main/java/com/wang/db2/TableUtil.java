@@ -51,7 +51,7 @@ public class TableUtil {
      * String -> varchar(20)
      * User -> int/bigint
      */
-    private static String getType(Field field) {
+    protected static String getType(Field field) {
         if (field.getAnnotation(Reference.class) != null) {
             Field innerIdField = ReflectUtil.findByAnno(field.getType(), Id.class);
             switch (innerIdField.getType().getSimpleName()) {
@@ -109,7 +109,7 @@ public class TableUtil {
         return list;
     }
 
-    private static String foreignKeySql(String mainTableName,
+    protected static String foreignKeySql(String mainTableName,
                                         String mainFieldName,
                                         String referenceTableName,
                                         String referenceFieldName,
